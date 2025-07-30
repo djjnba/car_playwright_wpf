@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net8.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<UseWindowsForms>true</UseWindowsForms>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UseWPF>true</UseWPF>
+		<!-- 自动生成日期版本号 (1.YYYY.MM.DD) -->
+		<Today>$([System.DateTime]::Now.ToString(yyyy.MM.dd))</Today>
+		<AssemblyVersion>1.$(Today)</AssemblyVersion>
+		<FileVersion>1.$(Today)</FileVersion>
+		<Version>1.$(Today)</Version>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- 核心包（必须升级到兼容版本） -->
+		<PackageReference Include="MaterialDesignThemes" Version="5.2.1" />
+		<PackageReference Include="MaterialDesignThemes.MahApps" Version="5.2.1" />
+	</ItemGroup>
+
+
+</Project>
