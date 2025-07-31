@@ -12,11 +12,10 @@ using Microsoft.Win32;
 
 namespace car_playwright_wpf
 {
-    
+
 
     public partial class MainWindow : Window
     {
-        private NotifyIcon? trayIcon;
         private readonly PaletteHelper _paletteHelper = new();
 
         // 添加类成员变量
@@ -27,19 +26,38 @@ namespace car_playwright_wpf
         {
             InitializeComponent();
 
-            // 初始化开关状态
-          
-
             // 获取程序集版本号
             string version = Assembly.GetExecutingAssembly()
                                      .GetName()
                                      .Version?
                                      .ToString() ?? "未知版本";
-
-            // 设置窗口标题
             this.Title = $"用车复核工具 - v{version}";
 
-            InitializeTrayIcon();
+            // 启动时检查脚本路径
+            this.Loaded += MainWindow_Loaded;
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            string userConfigDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "CarPlaywrightWpf"
+            );
+            string pythonConfigPath = Path.Combine(userConfigDir, "python_config.json");
+            if (File.Exists(pythonConfigPath))
+            {
+                try
+                {
+                    string json = File.ReadAllText(pythonConfigPath);
+                    using var doc = JsonDocument.Parse(json);
+                    ApplyPythonConfig(doc.RootElement);
+                }
+                catch
+                {
+                    System.Windows.MessageBox.Show("Python配置文件读取失败，请检查格式。", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+            // 其它逻辑不变
         }
 
         private void DarkModeToggle_Checked(object sender, RoutedEventArgs e)
@@ -58,23 +76,6 @@ namespace car_playwright_wpf
                 theme.SetLightTheme();
                 _paletteHelper.SetTheme(theme);
             }
-        }
-
-
-        private void InitializeTrayIcon()
-        {
-            trayIcon = new NotifyIcon
-            {
-                Icon = SystemIcons.Application,
-                Visible = true,
-                Text = "用车复核助手"
-            };
-
-            trayIcon.DoubleClick += (s, e) => Dispatcher.Invoke(() => this.Show());
-            trayIcon.ContextMenuStrip = new ContextMenuStrip();
-            trayIcon.ContextMenuStrip.Items.Add("显示", null, (s, e) => Dispatcher.Invoke(() => this.Show()));
-            trayIcon.ContextMenuStrip.Items.Add("重启", null, (s, e) => System.Windows.Forms.Application.Restart());
-            trayIcon.ContextMenuStrip.Items.Add("退出", null, (s, e) => System.Windows.Application.Current.Shutdown());
         }
 
         private async void RunButton_Click(object sender, RoutedEventArgs e)
@@ -234,7 +235,8 @@ namespace car_playwright_wpf
 
         private void SaveConfig_Click(object sender, RoutedEventArgs e)
         {
-            var config = new Dictionary<string, object>
+            // Python配置字典
+            var pythonConfig = new Dictionary<string, object>
             {
                 ["username"] = UsernameBox.Text,
                 ["password"] = PasswordBox.Password,
@@ -264,11 +266,29 @@ namespace car_playwright_wpf
                 ["log_level"] = ((ComboBoxItem)LogLevelBox.SelectedItem)?.Content?.ToString()
             };
 
-            string json = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText("config.json", json);
+            string pythonJson = JsonSerializer.Serialize(pythonConfig, new JsonSerializerOptions { WriteIndented = true });
 
-            StatusLabel.Text = "✅ 配置已保存";
+            // 用户路径
+            string userConfigDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "CarPlaywrightWpf"
+            );
+            Directory.CreateDirectory(userConfigDir);
+            string pythonConfigPath = Path.Combine(userConfigDir, "python_config.json");
+            File.WriteAllText(pythonConfigPath, pythonJson);
+
+            // 脚本同目录（如有脚本路径）
+            if (!string.IsNullOrWhiteSpace(PythonCodeBox.Text))
+            {
+                string scriptDir = Path.GetDirectoryName(PythonCodeBox.Text)!;
+                string scriptConfigPath = Path.Combine(scriptDir, "python_config.json");
+                File.WriteAllText(scriptConfigPath, pythonJson);
+            }
+
+            StatusLabel.Text = "✅ Python配置已保存";
         }
+
+
 
         private void AppendLog(string message)
         {
@@ -354,12 +374,10 @@ namespace car_playwright_wpf
             }
         }
 
-
-
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             StopButton_Click(null, null); // 终止进程
-            trayIcon?.Dispose();          // 清理托盘资源
+            // trayIcon?.Dispose(); // 已删除
         }
 
         private void OpenSettings_Click(object sender, RoutedEventArgs e)
@@ -399,7 +417,7 @@ namespace car_playwright_wpf
 
         private void BrowseButton_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new Microsoft.Win32.OpenFileDialog
+            var dialog = new OpenFileDialog
             {
                 Title = "请选择脚本文件",
                 Filter = "Python 脚本 (*.py)|*.py|所有文件 (*.*)|*.*"
@@ -407,8 +425,89 @@ namespace car_playwright_wpf
             if (dialog.ShowDialog() == true)
             {
                 PythonCodeBox.Text = dialog.FileName;
+                RunButton.IsEnabled = true;
+                SaveCSharpConfig();
+
+                // 自动读取同目录下的 python_config.json
+                string configPath = Path.Combine(Path.GetDirectoryName(dialog.FileName)!, "python_config.json");
+                if (File.Exists(configPath))
+                {
+                    try
+                    {
+                        string json = File.ReadAllText(configPath);
+                        using var doc = JsonDocument.Parse(json);
+                        ApplyPythonConfig(doc.RootElement);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("配置文件读取失败：" + ex.Message, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
             }
         }
 
+        private void SaveCSharpConfig()
+        {
+            var csharpConfig = new Dictionary<string, object>
+            {
+                ["python_path"] = "python",
+                ["script_file"] = PythonCodeBox.Text,
+                ["auto_restart"] = false,
+                ["run_in_tray"] = false,
+                ["config_ui_mode"] = "simple",
+                ["show_notifications"] = true,
+                ["theme"] = (DarkModeToggle.IsChecked == true) ? "dark" : "light"
+            };
+
+            string userConfigDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "CarPlaywrightWpf"
+            );
+            Directory.CreateDirectory(userConfigDir);
+            string configPath = Path.Combine(userConfigDir, "csharp_config.json");
+
+            string json = JsonSerializer.Serialize(csharpConfig, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(configPath, json);
+        }
+
+        private void ApplyPythonConfig(JsonElement pyConfig)
+        {
+            UsernameBox.Text = pyConfig.GetProperty("username").GetString() ?? "";
+            PasswordBox.Password = pyConfig.GetProperty("password").GetString() ?? "";
+            HeadlessToggle.IsChecked = pyConfig.GetProperty("headless").GetBoolean();
+            SlowMoBox.Text = pyConfig.GetProperty("slow_mo").ToString();
+            NavigationTimeoutBox.Text = pyConfig.GetProperty("navigation_timeout").ToString();
+            DefaultTimeoutBox.Text = pyConfig.GetProperty("default_timeout").ToString();
+            RetryTimesBox.Text = pyConfig.GetProperty("retry_times").ToString();
+            DelayAfterClickBox.Text = pyConfig.GetProperty("delay_after_click").ToString();
+            OnlyLoginToggle.IsChecked = pyConfig.GetProperty("only_login").GetBoolean();
+            AutoSubmitToggle.IsChecked = pyConfig.GetProperty("auto_submit").GetBoolean();
+            AutoExitToggle.IsChecked = pyConfig.GetProperty("auto_exit").GetBoolean();
+            ExportJsonBox.IsChecked = pyConfig.GetProperty("export_json").GetBoolean();
+            ExportExcelToggle.IsChecked = pyConfig.GetProperty("export_excel").GetBoolean();
+            LogFileBox.Text = pyConfig.GetProperty("log_file").GetString() ?? "";
+            BaseUrlBox.Text = pyConfig.GetProperty("base_url").GetString() ?? "";
+            OcrLangBox.Text = pyConfig.GetProperty("captcha_ocr_lang").GetString() ?? "";
+            TesseractPathBox.Text = pyConfig.GetProperty("tesseract_path").GetString() ?? "";
+            ExcelPrefixBox.Text = pyConfig.GetProperty("excel_prefix").GetString() ?? "";
+            ExcelMonthlyBox.IsChecked = pyConfig.GetProperty("excel_monthly").GetBoolean();
+            MaxRetryOnErrorBox.Text = pyConfig.GetProperty("max_retry_on_error").ToString();
+            InputTimeoutBox.Text = pyConfig.GetProperty("input_timeout").ToString();
+            OrderTimeThresholdBox.Text = pyConfig.GetProperty("order_time_threshold").ToString();
+            OrderMaxRetryBox.Text = pyConfig.GetProperty("order_max_retry").ToString();
+            OrderRetryDelayBox.Text = pyConfig.GetProperty("order_retry_delay").ToString();
+            DebugModeBox.IsChecked = pyConfig.GetProperty("debug_mode").GetBoolean();
+
+            // 日志等级 ComboBox
+            string logLevel = pyConfig.GetProperty("log_level").GetString() ?? "DEBUG";
+            foreach (ComboBoxItem item in LogLevelBox.Items)
+            {
+                if ((item.Content?.ToString() ?? "") == logLevel)
+                {
+                    LogLevelBox.SelectedItem = item;
+                    break;
+                }
+            }
+        }
     }
 }
