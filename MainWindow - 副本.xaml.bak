@@ -5,8 +5,9 @@
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     Title="用车复核配置器"
     Width="1000"
+    Height="700"
     MinHeight="600"
-    MaxHeight="900"
+    MaxHeight="800"
     Background="{DynamicResource MaterialDesignPaper}"
     Closing="Window_Closing"
     FontFamily="{DynamicResource MaterialDesignFont}"
@@ -39,7 +40,7 @@
     <!--  主网格布局，分为内容区和底部日志区  -->
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="600" />
+            <RowDefinition Height="*" />
             <!--  主内容区自适应  -->
             <RowDefinition Height="Auto" />
             <!--  日志区展开时占用实际高度  -->
@@ -288,30 +289,21 @@
                             <ComboBoxItem Content="CRITICAL" />
                         </ComboBox>
 
+                        <!--  导出选项  -->
                         <TextBlock
                             Margin="0,0,0,10"
                             FontWeight="Bold"
                             Text="导出设置" />
-                        <WrapPanel Margin="2">
-                            <StackPanel
-                                Margin="0"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
-                                <!--  导出选项  -->
-                                <CheckBox
-                                    Name="ExportJsonBox"
-                                    Margin="0,0,0,10"
-                                    Content="导出 JSON"
-                                    IsChecked="True" />
-                                <CheckBox
-                                    Name="ExcelMonthlyBox"
-                                    Margin="10,0,0,10"
-                                    Content="按月导出 Excel"
-                                    IsChecked="True" />
-                            </StackPanel>
-                        </WrapPanel>
-
-
+                        <CheckBox
+                            Name="ExportJsonBox"
+                            Margin="0,5"
+                            Content="导出 JSON"
+                            IsChecked="True" />
+                        <CheckBox
+                            Name="ExcelMonthlyBox"
+                            Margin="0,5,0,15"
+                            Content="按月导出 Excel"
+                            IsChecked="True" />
 
                         <!--  调试选项  -->
                         <TextBlock
@@ -329,103 +321,68 @@
                             Margin="0,0,0,10"
                             FontWeight="Bold"
                             Text="超时设置" />
-
-                        <WrapPanel Margin="2">
-                            <StackPanel
-                                Margin="2"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
-
-                                <TextBlock Text="操作间隔 (ms):" />
-                                <TextBox
-                                    VerticalAlignment="Center"
-  materialDesign:HintAssist.Hint="操作间隔 (ms):"
-  Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                                    Name="SlowMoBox"
-                                    Margin="2"
-                                    Text="100" />
-                                <TextBlock Margin="0,5,0,0" Text="导航超时 (ms):" />
-                                <TextBox
-                                    Name="NavigationTimeoutBox"
-                                    Width="80"
-                                    Margin="10,0,10,0"
-                                    Text="20000" />
-                                <TextBlock Text="默认超时 (ms):" />
-                                <TextBox
-                                    Name="DefaultTimeoutBox"
-                                    Margin="2"
-                                    Text="6000" />
-                                <TextBlock Text="异常输入等待超时 (秒):" />
-                                <TextBox
-                                    Name="InputTimeoutBox"
-                                    Margin="2"
-                                    Text="30" />
-
-
-                            </StackPanel>
-                        </WrapPanel>
-
+                        <TextBlock Text="操作间隔 (ms):" />
+                        <TextBox
+                            Name="SlowMoBox"
+                            Margin="0,0,0,5"
+                            Text="100" />
+                        <TextBlock Text="导航超时 (ms):" />
+                        <TextBox
+                            Name="NavigationTimeoutBox"
+                            Margin="0,0,0,5"
+                            Text="20000" />
+                        <TextBlock Text="默认超时 (ms):" />
+                        <TextBox
+                            Name="DefaultTimeoutBox"
+                            Margin="0,0,0,5"
+                            Text="6000" />
+                        <TextBlock Text="异常输入等待超时 (秒):" />
+                        <TextBox
+                            Name="InputTimeoutBox"
+                            Margin="0,0,0,15"
+                            Text="30" />
 
                         <!--  重试设置  -->
                         <TextBlock
                             Margin="0,0,0,10"
                             FontWeight="Bold"
                             Text="重试设置" />
-
-                        <WrapPanel Margin="2">
-                            <StackPanel
-                                Margin="2"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
-                                <TextBlock Text="重试次数:" />
-                                <TextBox
-                                    Name="RetryTimesBox"
-                                    Margin="0,0,0,5"
-                                    Text="3" />
-                                <TextBlock Text="点击后延迟 (秒):" />
-                                <TextBox
-                                    Name="DelayAfterClickBox"
-                                    Margin="0,0,0,5"
-                                    Text="1.0" />
-                                <TextBlock Text="主程序异常重试次数:" />
-                                <TextBox
-                                    Name="MaxRetryOnErrorBox"
-                                    Margin="0,0,0,5"
-                                    Text="1" />
-                            </StackPanel>
-                        </WrapPanel>
-
-
+                        <TextBlock Text="重试次数:" />
+                        <TextBox
+                            Name="RetryTimesBox"
+                            Margin="0,0,0,5"
+                            Text="3" />
+                        <TextBlock Text="点击后延迟 (秒):" />
+                        <TextBox
+                            Name="DelayAfterClickBox"
+                            Margin="0,0,0,5"
+                            Text="1.0" />
+                        <TextBlock Text="主程序异常重试次数:" />
+                        <TextBox
+                            Name="MaxRetryOnErrorBox"
+                            Margin="0,0,0,5"
+                            Text="1" />
 
                         <!--  订单设置  -->
                         <TextBlock
                             Margin="0,10,0,10"
                             FontWeight="Bold"
                             Text="订单处理" />
-
-                        <WrapPanel Margin="2">
-                            <StackPanel
-                                Margin="2"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
-                                <TextBlock Text="订单时间差阈值 (小时):" />
-                                <TextBox
-                                    Name="OrderTimeThresholdBox"
-                                    Margin="0,0,0,5"
-                                    Text="4" />
-                                <TextBlock Text="订单最大重试次数:" />
-                                <TextBox
-                                    Name="OrderMaxRetryBox"
-                                    Margin="0,0,0,5"
-                                    Text="5" />
-                                <TextBlock Text="订单重试间隔 (秒):" />
-                                <TextBox
-                                    Name="OrderRetryDelayBox"
-                                    Margin="0,0,0,5"
-                                    Text="1.0" />
-                            </StackPanel>
-                        </WrapPanel>
-
+                        <TextBlock Text="订单时间差阈值 (小时):" />
+                        <TextBox
+                            Name="OrderTimeThresholdBox"
+                            Margin="0,0,0,5"
+                            Text="4" />
+                        <TextBlock Text="订单最大重试次数:" />
+                        <TextBox
+                            Name="OrderMaxRetryBox"
+                            Margin="0,0,0,5"
+                            Text="5" />
+                        <TextBlock Text="订单重试间隔 (秒):" />
+                        <TextBox
+                            Name="OrderRetryDelayBox"
+                            Margin="0,0,0,5"
+                            Text="1.0" />
 
                         <!--  路径设置  -->
                         <TextBlock
@@ -625,7 +582,7 @@
                 <TextBox
                     Name="LogBox"
                     MinHeight="180"
-                    MaxHeight="350"
+                    MaxHeight="300"
                     VerticalAlignment="Stretch"
                     AcceptsReturn="True"
                     Background="{DynamicResource MaterialDesignBackground}"

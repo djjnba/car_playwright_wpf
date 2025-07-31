@@ -43,6 +43,57 @@ namespace car_playwright_wpf
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "CarPlaywrightWpf"
             );
+            string configPath = Path.Combine(userConfigDir, "csharp_config.json");
+            if (File.Exists(configPath))
+            {
+                try
+                {
+                    string json = File.ReadAllText(configPath);
+                    using var doc = JsonDocument.Parse(json);
+                    var root = doc.RootElement;
+
+                    // 脚本路径
+                    if (root.TryGetProperty("script_file", out var scriptFile))
+                    {
+                        PythonCodeBox.Text = scriptFile.GetString() ?? "";
+                        RunButton.IsEnabled = !string.IsNullOrWhiteSpace(PythonCodeBox.Text);
+                    }
+
+                    // Python路径（如有控件可赋值）
+                    if (root.TryGetProperty("python_path", out var pythonPath))
+                    {
+                        // 例如有 TextBox 名为 PythonPathBox
+                        // PythonPathBox.Text = pythonPath.GetString() ?? "";
+                    }
+
+                    // 主题
+                    if (root.TryGetProperty("theme", out var theme))
+                    {
+                        if (theme.GetString() == "dark")
+                        {
+                            DarkModeToggle.IsChecked = true;
+                        }
+                        else
+                        {
+                            DarkModeToggle.IsChecked = false;
+                        }
+                    }
+
+                    // 其它参数可按需补充
+                }
+                catch
+                {
+                    RunButton.IsEnabled = false;
+                    System.Windows.MessageBox.Show("C#配置文件读取失败，请重新选择脚本路径。", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+            else
+            {
+                RunButton.IsEnabled = false;
+                System.Windows.MessageBox.Show("请先选择 Python 脚本路径。", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+
+            // 移除重复定义和赋值
             string pythonConfigPath = Path.Combine(userConfigDir, "python_config.json");
             if (File.Exists(pythonConfigPath))
             {
