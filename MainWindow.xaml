@@ -6,7 +6,6 @@
     Title="用车复核配置器"
     Width="1000"
     MinHeight="600"
-    MaxHeight="900"
     Background="{DynamicResource MaterialDesignPaper}"
     Closing="Window_Closing"
     FontFamily="{DynamicResource MaterialDesignFont}"
@@ -59,6 +58,7 @@
             BorderThickness="1"
             ItemsSource="{Binding Tabs}"
             SelectedItem="{Binding SelectedTab}"
+            TabIndex="1"
             TabStripPlacement="Left">
 
             <!--  TabItems: 状态 / 设置 / …  -->
@@ -90,22 +90,36 @@
                             Minimum="0" />
 
                         <!--  操作按钮  -->
+                        <!--  启动按钮  -->
                         <Button
                             x:Name="RunButton"
                             Height="40"
                             Margin="0,10"
                             Click="RunButton_Click"
                             Content="🚗 启动复核"
-                            Style="{DynamicResource MaterialDesignRaisedButton}" />
+                            Style="{DynamicResource MaterialDesignRaisedButton}"
+                            Visibility="Visible" />
 
+                        <!--  运行中按钮（带进度/动画）  -->
+                        <Button
+                            x:Name="RunningButton"
+                            Height="40"
+                            Margin="0,10"
+                            materialDesign:ButtonProgressAssist.IsIndeterminate="True"
+                            materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
+                            Click="StopButton_Click"
+                            Content="用车复核进行中...点击停止"
+                            Style="{DynamicResource MaterialDesignRaisedButton}"
+                            Visibility="Collapsed" />
                         <Button
                             x:Name="StopButton"
                             Height="40"
                             Margin="0,5"
                             Click="StopButton_Click"
-                            Content="停止运行"
-                            IsEnabled="False"
+                            Content="强制停止"
+                            IsEnabled="True"
                             Style="{DynamicResource MaterialDesignOutlinedButton}" />
+
 
                         <ToggleButton
                             x:Name="DarkModeToggle"
@@ -128,16 +142,25 @@
                             Margin="0,0,0,10"
                             FontWeight="Bold"
                             Text="账户设置" />
-                        <TextBlock Text="用户名：" />
+
                         <TextBox
                             Name="UsernameBox"
                             Margin="0,0,0,10"
+                            VerticalAlignment="Top"
+                            materialDesign:HintAssist.HelperText=" "
+                            materialDesign:HintAssist.Hint="账号/用户名(validated)"
+                            Style="{StaticResource MaterialDesignFilledTextBox}"
                             Text="" />
-                        <TextBlock Text="密码：" />
+
                         <PasswordBox
                             Name="PasswordBox"
                             Margin="0,0,0,15"
-                            Password="" />
+                            materialDesign:HintAssist.HelperText=" "
+                            materialDesign:HintAssist.Hint="密码(validated)"
+                            IsEnabled="{Binding Path=IsChecked, ElementName=MaterialDesignFilledPasswordBoxEnabledComboBox}"
+                            Style="{StaticResource MaterialDesignFilledPasswordBox}" />
+
+
 
                         <!--  常用设置  -->
                         <TextBlock
@@ -266,67 +289,10 @@
                 <!--  高级内容  -->
                 <ScrollViewer Padding="10" VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10,10,10,10">
-                        <!--  OCR及日志设置  -->
-                        <TextBlock
-                            Margin="0,0,0,10"
-                            FontWeight="Bold"
-                            Text="OCR设置" />
-                        <TextBlock Text="OCR语言" />
-                        <TextBox
-                            Name="OcrLangBox"
-                            Margin="0,0,0,10"
-                            Text="eng" />
-                        <TextBlock Text="日志等级：" />
-                        <ComboBox
-                            Name="LogLevelBox"
-                            Margin="0,0,0,15"
-                            SelectedIndex="0">
-                            <ComboBoxItem Content="DEBUG" />
-                            <ComboBoxItem Content="INFO" />
-                            <ComboBoxItem Content="WARNING" />
-                            <ComboBoxItem Content="ERROR" />
-                            <ComboBoxItem Content="CRITICAL" />
-                        </ComboBox>
-
-                        <TextBlock
-                            Margin="0,0,0,10"
-                            FontWeight="Bold"
-                            Text="导出设置" />
-                        <WrapPanel Margin="2">
-                            <StackPanel
-                                Margin="0"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
-                                <!--  导出选项  -->
-                                <CheckBox
-                                    Name="ExportJsonBox"
-                                    Margin="0,0,0,10"
-                                    Content="导出 JSON"
-                                    IsChecked="True" />
-                                <CheckBox
-                                    Name="ExcelMonthlyBox"
-                                    Margin="10,0,0,10"
-                                    Content="按月导出 Excel"
-                                    IsChecked="True" />
-                            </StackPanel>
-                        </WrapPanel>
-
-
-
-                        <!--  调试选项  -->
-                        <TextBlock
-                            Margin="0,0,0,10"
-                            FontWeight="Bold"
-                            Text="调试设置" />
-                        <CheckBox
-                            Name="DebugModeBox"
-                            Margin="0,5,0,15"
-                            Content="调试模式"
-                            IsChecked="False" />
 
                         <!--  超时设置  -->
                         <TextBlock
-                            Margin="0,0,0,10"
+                            Margin="0,5,5,5"
                             FontWeight="Bold"
                             Text="超时设置" />
 
@@ -335,32 +301,57 @@
                                 Margin="2"
                                 VerticalAlignment="Center"
                                 Orientation="Horizontal">
-
-                                <TextBlock Text="操作间隔 (ms):" />
                                 <TextBox
-                                    VerticalAlignment="Center"
-  materialDesign:HintAssist.Hint="操作间隔 (ms):"
-  Style="{StaticResource MaterialDesignFloatingHintTextBox}"
                                     Name="SlowMoBox"
-                                    Margin="2"
-                                    Text="100" />
-                                <TextBlock Margin="0,5,0,0" Text="导航超时 (ms):" />
+                                    MaxWidth="400"
+                                    Margin="0,0,10,0"
+                                    VerticalAlignment="Top"
+                                    materialDesign:HintAssist.Hint="操作间隔 (ms)"
+                                    AcceptsReturn="True"
+                                    FontSize="15"
+                                    IsEnabled="{Binding Path=IsChecked, ElementName=MaterialDesignFilledTextBoxEnabledComboBox}"
+                                    Style="{StaticResource MaterialDesignFilledTextBox}"
+                                    Text="100"
+                                    TextWrapping="Wrap" />
+
                                 <TextBox
                                     Name="NavigationTimeoutBox"
-                                    Width="80"
-                                    Margin="10,0,10,0"
-                                    Text="20000" />
-                                <TextBlock Text="默认超时 (ms):" />
+                                    MaxWidth="400"
+                                    Margin="0,0,10,0"
+                                    VerticalAlignment="Top"
+                                    materialDesign:HintAssist.Hint="导航超时 (ms):"
+                                    AcceptsReturn="True"
+                                    FontSize="15"
+                                    IsEnabled="{Binding Path=IsChecked, ElementName=MaterialDesignFilledTextBoxEnabledComboBox}"
+                                    Style="{StaticResource MaterialDesignFilledTextBox}"
+                                    Text="20000"
+                                    TextWrapping="Wrap" />
+
                                 <TextBox
                                     Name="DefaultTimeoutBox"
-                                    Margin="2"
-                                    Text="6000" />
-                                <TextBlock Text="异常输入等待超时 (秒):" />
+                                    MaxWidth="400"
+                                    Margin="0,0,10,0"
+                                    VerticalAlignment="Top"
+                                    materialDesign:HintAssist.Hint="默认超时 (ms):"
+                                    AcceptsReturn="True"
+                                    FontSize="15"
+                                    IsEnabled="{Binding Path=IsChecked, ElementName=MaterialDesignFilledTextBoxEnabledComboBox}"
+                                    Style="{StaticResource MaterialDesignFilledTextBox}"
+                                    Text="6000"
+                                    TextWrapping="Wrap" />
+
                                 <TextBox
                                     Name="InputTimeoutBox"
-                                    Margin="2"
-                                    Text="30" />
-
+                                    MaxWidth="400"
+                                    Margin="0,0,10,0"
+                                    VerticalAlignment="Top"
+                                    materialDesign:HintAssist.Hint="异常输入等待超时 (秒):"
+                                    AcceptsReturn="True"
+                                    FontSize="15"
+                                    IsEnabled="{Binding Path=IsChecked, ElementName=MaterialDesignFilledTextBoxEnabledComboBox}"
+                                    Style="{StaticResource MaterialDesignFilledTextBox}"
+                                    Text="30"
+                                    TextWrapping="Wrap" />
 
                             </StackPanel>
                         </WrapPanel>
@@ -368,7 +359,7 @@
 
                         <!--  重试设置  -->
                         <TextBlock
-                            Margin="0,0,0,10"
+                            Margin="0,5,5,5"
                             FontWeight="Bold"
                             Text="重试设置" />
 
@@ -452,77 +443,159 @@
                             Name="LogFileBox"
                             Margin="0,0,0,5"
                             Text="program.log" />
+
+                        <!--  OCR及日志设置  -->
+                        <TextBlock
+                            Margin="0,10,0,10"
+                            FontWeight="Bold"
+                            Text="其他" />
+
+                        <WrapPanel Margin="2">
+                            <StackPanel
+                                Margin="2"
+                                VerticalAlignment="Center"
+                                Orientation="Horizontal">
+
+
+
+                                <ComboBox
+                                    Name="LogLevelBox"
+                                    Width="200"
+                                    MaxWidth="400"
+                                    Margin="0,0,10,15"
+                                    materialDesign:HintAssist.HelperText=" "
+                                    materialDesign:HintAssist.Hint="日志等级"
+                                    SelectedIndex="0"
+                                    Style="{StaticResource MaterialDesignFilledComboBox}">
+                                    <ComboBoxItem Content="DEBUG" />
+                                    <ComboBoxItem Content="INFO" />
+                                    <ComboBoxItem Content="WARNING" />
+                                    <ComboBoxItem Content="ERROR" />
+                                    <ComboBoxItem Content="CRITICAL" />
+                                </ComboBox>
+
+                                <ComboBox
+                                    Name="OcrLangBox"
+                                    Width="200"
+                                    MaxWidth="400"
+                                    Margin="0,0,10,15"
+                                    materialDesign:HintAssist.HelperText=" "
+                                    materialDesign:HintAssist.Hint="OCR语言"
+                                    SelectedIndex="0"
+                                    Style="{StaticResource MaterialDesignFilledComboBox}">
+                                    <ComboBoxItem Content="eng" />
+                                </ComboBox>
+
+                                <!--  导出选项  -->
+                                <CheckBox
+                                    Name="ExportJsonBox"
+                                    Margin="0,0,10,10"
+                                    Content="导出 JSON"
+                                    IsChecked="True" />
+                                <CheckBox
+                                    Name="ExcelMonthlyBox"
+                                    Margin="0,0,10,10"
+                                    Content="按月导出 Excel"
+                                    IsChecked="True" />
+                                <CheckBox
+                                    Name="DebugModeBox"
+                                    Margin="0,0,10,10"
+                                    Content="调试模式"
+                                    IsChecked="False" />
+                            </StackPanel>
+                        </WrapPanel>
+
                     </StackPanel>
+
                 </ScrollViewer>
             </TabItem>
+            <!--  定时运行 — TabItem  -->
             <TabItem Header="定时运行">
-                <!--  定时配置  -->
                 <ScrollViewer Padding="10" VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="10,10,10,10">
+                    <StackPanel Width="Auto" Margin="10">
+                        <!--  标题  -->
                         <TextBlock
                             Margin="0,0,0,15"
+                            FontSize="16"
                             FontWeight="Bold"
                             Text="定时任务配置" />
 
-                        <!--  定时设置  -->
-                        <TextBlock Margin="0,0,0,5" Text="执行时间" />
-                        <StackPanel Margin="0,0,0,15" Orientation="Horizontal">
-                            <ComboBox
-                                Width="80"
-                                Margin="0,0,5,0"
-                                SelectedIndex="0">
-                                <ComboBoxItem Content="每天" />
-                                <ComboBoxItem Content="每周" />
-                                <ComboBoxItem Content="每月" />
-                            </ComboBox>
-                            <TextBox
-                                Width="60"
-                                Margin="5,0"
-                                Text="08:00" />
-                        </StackPanel>
-
-                        <!--  重复设置  -->
-                        <CheckBox
-                            Name="RepeatTaskBox"
-                            Margin="0,0,0,5"
-                            Content="重复执行"
-                            IsChecked="True" />
-                        <TextBlock Margin="0,10,0,5" Text="执行间隔 (小时):" />
-                        <TextBox
-                            Name="IntervalBox"
-                            Margin="0,0,0,15"
-                            Text="24" />
-
-                        <!--  任务开关  -->
-                        <Button
-                            Height="40"
-                            Margin="0,10"
-                            Content="启用定时任务"
-                            Style="{DynamicResource MaterialDesignRaisedButton}" />
-
-                        <Button
-                            Height="35"
-                            Margin="0,5"
-                            Content="立即执行一次"
-                            Style="{DynamicResource MaterialDesignOutlinedButton}" />
+                        <!--  时间设置区域  -->
+                        <GroupBox Margin="0,0,0,15" Header="时间设置">
+                            <StackPanel Orientation="Horizontal">
+                                <ComboBox
+                                    x:Name="FrequencyComboBox"
+                                    Width="200"
+                                    Margin="0,0,10,0"
+                                    materialDesign:HintAssist.Hint="执行周期"
+                                    SelectedIndex="0"
+                                    Style="{StaticResource MaterialDesignOutlinedComboBox}">
+                                    <ComboBoxItem Content="每小时" Tag="1" />
+                                    <ComboBoxItem Content="每天" Tag="24" />
+                                    <ComboBoxItem Content="每2天" Tag="48" />
+                                </ComboBox>
+                                <materialDesign:TimePicker
+                                    x:Name="TaskTimePicker"
+                                    Width="140"
+                                    materialDesign:HintAssist.Hint="起始时间"
+                                    Is24Hours="True"
+                                    SelectedTime="23:00"
+                                    Style="{StaticResource MaterialDesignOutlinedTimePicker}" />
+                            </StackPanel>
+                        </GroupBox>
 
                         <!--  任务状态  -->
-                        <TextBlock
-                            Margin="0,15,0,5"
-                            FontWeight="Bold"
-                            Text="任务状态" />
-                        <TextBlock
-                            Name="TaskStatusLabel"
-                            Margin="0,0,0,5"
-                            Text="未启用" />
-                        <TextBlock Margin="0,10,0,5" Text="下次执行时间:" />
-                        <TextBlock
-                            Name="NextRunTimeLabel"
-                            Margin="0,0,0,15"
-                            Text="--" />
+                        <GroupBox Margin="0,0,0,15" Header="任务状态">
+                            <StackPanel>
+                                <TextBlock
+                                    x:Name="TaskStatusLabel"
+                                    Foreground="Gray"
+                                    Text="未启用" />
+                                <StackPanel Margin="0,10,0,0" Orientation="Vertical">
+                                    <TextBlock FontWeight="SemiBold" Text="上次执行时间:" />
+                                    <TextBlock
+                                        x:Name="LastRunTimeLabel"
+                                        Margin="10,0,0,0"
+                                        Text="--" />
+                                    <TextBlock FontWeight="SemiBold" Text="下次执行时间:" />
+                                    <TextBlock
+                                        x:Name="NextRunTimeLabel"
+                                        Margin="10,0,0,0"
+                                        Text="--" />
+                                </StackPanel>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <!--  操作按钮  -->
+                        <StackPanel Margin="0,20,0,10">
+                            <!--  启用按钮  -->
+                            <Button
+                                x:Name="ToggleTaskButton"
+                                Height="40"
+                                Margin="0,0,0,10"
+                                Click="ToggleTaskButton_Click"
+                                Content="启用定时任务"
+                                Style="{DynamicResource MaterialDesignRaisedButton}"
+                                Visibility="Visible" />
+
+                            <!--  运行中按钮  -->
+                            <Button
+                                x:Name="RunningToggleTaskButton"
+                                Height="40"
+                                Margin="0,0,0,10"
+                                materialDesign:ButtonProgressAssist.IsIndeterminate="True"
+                                materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
+                                Click="ToggleTaskButton_Click"
+                                Content="定时任务已启用，点击停止"
+                                Style="{DynamicResource MaterialDesignRaisedButton}"
+                                Visibility="Collapsed" />
+
+                        </StackPanel>
+
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
+
 
             <TabItem Header="关于">
                 <!--  关于内容  -->
@@ -625,7 +698,7 @@
                 <TextBox
                     Name="LogBox"
                     MinHeight="180"
-                    MaxHeight="350"
+                    MaxHeight="230"
                     VerticalAlignment="Stretch"
                     AcceptsReturn="True"
                     Background="{DynamicResource MaterialDesignBackground}"

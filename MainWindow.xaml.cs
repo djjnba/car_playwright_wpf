@@ -131,12 +131,12 @@ namespace car_playwright_wpf
 
         private async void RunButton_Click(object sender, RoutedEventArgs e)
         {
-            RunButton.IsEnabled = false;
-            StopButton.IsEnabled = true;
+            RunButton.Visibility = Visibility.Collapsed;
+            RunningButton.Visibility = Visibility.Visible;
 
             StatusLabel.Text = "🕐 正在运行，请稍候...";
             ProgressBarControl.Value = 0;
-            LogBox.Clear();
+            //LogBox.Clear();
 
             processCancellationToken = new CancellationTokenSource();
 
@@ -157,7 +157,8 @@ namespace car_playwright_wpf
                 $"--export_excel {ExportExcelToggle.IsChecked?.ToString().ToLower()}",
                 $"--log_file \"{LogFileBox.Text}\"",
                 $"--base_url \"{BaseUrlBox.Text}\"",
-                $"--captcha_ocr_lang {OcrLangBox.Text}",
+                //$"--captcha_ocr_lang {OcrLangBox.Text}",
+                $"--captcha_ocr_lang {(OcrLangBox.SelectedItem as ComboBoxItem)?.Content?.ToString()}",
                 $"--tesseract_path \"{TesseractPathBox.Text}\"",
                 $"--excel_prefix \"{ExcelPrefixBox.Text}\"",
                 $"--excel_monthly {ExcelMonthlyBox.IsChecked?.ToString().ToLower()}",
@@ -176,8 +177,8 @@ namespace car_playwright_wpf
             {
                 StatusLabel.Text = "⚠️ 未选择有效脚本";
                 LogBox.AppendText("⚠️ 请先选择有效的 Python 脚本文件。\n");
-                RunButton.IsEnabled = true;
-                StopButton.IsEnabled = false;
+                RunButton.Visibility = Visibility.Visible;
+                RunningButton.Visibility = Visibility.Collapsed;
                 return;
             }
 
@@ -256,8 +257,8 @@ namespace car_playwright_wpf
             }
             finally
             {
-                RunButton.IsEnabled = true;
-                StopButton.IsEnabled = false;
+                RunButton.Visibility = Visibility.Visible;
+                RunningButton.Visibility = Visibility.Collapsed;
                 ProgressBarControl.Value = 100;
 
                 runningProcess?.Dispose();
@@ -269,6 +270,9 @@ namespace car_playwright_wpf
 
         private void StopButton_Click(object sender, RoutedEventArgs e)
         {
+            RunningButton.Visibility = Visibility.Collapsed;
+            RunButton.Visibility = Visibility.Visible;
+
             try
             {
                 if (runningProcess != null && !runningProcess.HasExited)
@@ -304,7 +308,8 @@ namespace car_playwright_wpf
                 ["export_excel"] = ExportExcelToggle.IsChecked == true,
                 ["log_file"] = LogFileBox.Text,
                 ["base_url"] = BaseUrlBox.Text,
-                ["captcha_ocr_lang"] = OcrLangBox.Text,
+                //["captcha_ocr_lang"] = OcrLangBox.Text,
+                ["captcha_ocr_lang"] = (OcrLangBox.SelectedItem as ComboBoxItem)?.Content?.ToString(),
                 ["tesseract_path"] = TesseractPathBox.Text,
                 ["excel_prefix"] = ExcelPrefixBox.Text,
                 ["excel_monthly"] = ExcelMonthlyBox.IsChecked == true,
@@ -538,7 +543,7 @@ namespace car_playwright_wpf
             ExportExcelToggle.IsChecked = pyConfig.GetProperty("export_excel").GetBoolean();
             LogFileBox.Text = pyConfig.GetProperty("log_file").GetString() ?? "";
             BaseUrlBox.Text = pyConfig.GetProperty("base_url").GetString() ?? "";
-            OcrLangBox.Text = pyConfig.GetProperty("captcha_ocr_lang").GetString() ?? "";
+            //OcrLangBox.Text = pyConfig.GetProperty("captcha_ocr_lang").GetString() ?? "";
             TesseractPathBox.Text = pyConfig.GetProperty("tesseract_path").GetString() ?? "";
             ExcelPrefixBox.Text = pyConfig.GetProperty("excel_prefix").GetString() ?? "";
             ExcelMonthlyBox.IsChecked = pyConfig.GetProperty("excel_monthly").GetBoolean();
@@ -559,6 +564,77 @@ namespace car_playwright_wpf
                     break;
                 }
             }
+            string ocrLang = pyConfig.GetProperty("captcha_ocr_lang").GetString() ?? "eng";
+            foreach (ComboBoxItem item in OcrLangBox.Items)
+            {
+                if ((item.Content?.ToString() ?? "") == ocrLang)
+                {
+                    OcrLangBox.SelectedItem = item;
+                    break;
+                }
+            }
+
+        }
+
+        //定时任务点击无反应？
+        private TaskSchedulerService? _scheduler;
+
+        private async void ToggleTaskButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_scheduler == null)
+            {
+                if (!(FrequencyComboBox.SelectedItem is ComboBoxItem freqItem) ||
+                    !double.TryParse(freqItem.Tag?.ToString(), out double hours))
+                {
+                    hours = 24;
+                }
+
+                if (TaskTimePicker.SelectedTime == null)
+                {
+                    MessageBox.Show("请选择时间");
+                    return;
+                }
+
+                var ts = TaskTimePicker.SelectedTime.Value.TimeOfDay;
+                var now = DateTime.Now;
+                var first = now.Date + ts;
+                var interval = TimeSpan.FromHours(hours);
+
+                if (first <= now)
+                    first = first.Add(interval);
+
+                _scheduler = new TaskSchedulerService(first, interval, async () =>
+                {
+                    await Dispatcher.InvokeAsync(() =>
+                    {
+                        LastRunTimeLabel.Text = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
+                        TaskStatusLabel.Text = "运行中";
+                        NextRunTimeLabel.Text = _scheduler!.NextRun.ToString("yyyy-MM-dd HH:mm");
+                        LogBox.Text += $"定时任务开始执行》》》";
+                        //时间到了点击按钮？
+                        RunButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                        
+                    });
+                });
+
+                TaskStatusLabel.Text = "已启用";
+                NextRunTimeLabel.Text = _scheduler.NextRun.ToString("yyyy‑MM‑dd HH:mm");
+                LogBox.Text += $"定时任务已启用，上一次运行时间:{LastRunTimeLabel.Text}，下一次运行时间: {NextRunTimeLabel.Text}\n";
+                ToggleTaskButton.Visibility = Visibility.Collapsed;
+                RunningToggleTaskButton.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                _scheduler.Dispose();
+                _scheduler = null;
+                TaskStatusLabel.Text = "未启用";
+                NextRunTimeLabel.Text = "--";
+                LogBox.Text += $"定时任务已停止，上一次运行时间:{LastRunTimeLabel.Text}，下一次运行时间: {NextRunTimeLabel.Text}\n";
+                RunningToggleTaskButton.Visibility = Visibility.Collapsed;
+                ToggleTaskButton.Visibility = Visibility.Visible;
+            }
+
+            await Task.CompletedTask;
         }
     }
 }
