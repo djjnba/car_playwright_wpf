@@ -4,8 +4,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     Title="用车复核配置器"
-    Width="1000"
-    MinHeight="600"
+    Width="900"
+    Height="550"
     Background="{DynamicResource MaterialDesignPaper}"
     Closing="Window_Closing"
     FontFamily="{DynamicResource MaterialDesignFont}"
@@ -77,17 +77,17 @@
                             Margin="0,0,0,10"
                             Text="未开始" />
 
-                        <!--  进度条  -->
-                        <TextBlock
-                            Margin="0,10,0,5"
-                            FontWeight="Bold"
-                            Text="执行进度：" />
-                        <ProgressBar
-                            Name="ProgressBarControl"
-                            Height="20"
-                            Margin="0,0,0,10"
-                            Maximum="100"
-                            Minimum="0" />
+                                <!--  进度条  -->
+                                <TextBlock
+                                    Margin="0,10,0,5"
+                                    FontWeight="Bold"
+                                    Text="执行进度：" />
+                                <ProgressBar
+                                    Name="ProgressBarControl"
+                                    Height="20"
+                                    Margin="0,0,0,10"
+                                    Maximum="100"
+                                    Minimum="0" />
 
                         <!--  操作按钮  -->
                         <!--  启动按钮  -->
@@ -168,119 +168,119 @@
                             FontWeight="Bold"
                             Text="常用选项" />
 
-                        <WrapPanel Margin="5">
-                            <!--  无头模式  -->
-                            <StackPanel
-                                Margin="5"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
+                                <WrapPanel Margin="5">
+                                    <!--  无头模式  -->
+                                    <StackPanel
+                                        Margin="5"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal">
+                                        <TextBlock
+                                            Margin="0,0,4,0"
+                                            VerticalAlignment="Center"
+                                            Text="无头模式" />
+                                        <ToggleButton
+                                            x:Name="HeadlessToggle"
+                                            Width="40"
+                                            Height="20"
+                                            Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
+                                    </StackPanel>
+
+                                    <!--  自动提交  -->
+                                    <StackPanel
+                                        Margin="5"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal">
+                                        <TextBlock
+                                            Margin="10,0,4,0"
+                                            VerticalAlignment="Center"
+                                            Text="自动提交" />
+                                        <ToggleButton
+                                            x:Name="AutoSubmitToggle"
+                                            Width="40"
+                                            Height="20"
+                                            IsChecked="True"
+                                            Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
+                                    </StackPanel>
+
+                                    <!--  导出 Excel  -->
+                                    <StackPanel
+                                        Margin="5"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal">
+                                        <TextBlock
+                                            Margin="10,0,4,0"
+                                            VerticalAlignment="Center"
+                                            Text="导出 Excel" />
+                                        <ToggleButton
+                                            x:Name="ExportExcelToggle"
+                                            Width="40"
+                                            Height="20"
+                                            IsChecked="True"
+                                            Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
+                                    </StackPanel>
+
+                                    <!--  自动退出  -->
+                                    <StackPanel
+                                        Margin="5"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal">
+                                        <TextBlock
+                                            Margin="10,0,4,0"
+                                            VerticalAlignment="Center"
+                                            Text="自动退出" />
+                                        <ToggleButton
+                                            x:Name="AutoExitToggle"
+                                            Width="40"
+                                            Height="20"
+                                            IsChecked="True"
+                                            Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
+                                    </StackPanel>
+
+                                    <!--  仅登录  -->
+                                    <StackPanel
+                                        Margin="5"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal">
+                                        <TextBlock
+                                            Margin="10,0,4,0"
+                                            VerticalAlignment="Center"
+                                            Text="仅登录" />
+                                        <ToggleButton
+                                            x:Name="OnlyLoginToggle"
+                                            Width="40"
+                                            Height="20"
+                                            Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
+                                    </StackPanel>
+
+
+
+                                </WrapPanel>
+
+                                <!--  路径设置  -->
                                 <TextBlock
-                                    Margin="0,0,4,0"
-                                    VerticalAlignment="Center"
-                                    Text="无头模式" />
-                                <ToggleButton
-                                    x:Name="HeadlessToggle"
-                                    Width="40"
-                                    Height="20"
-                                    Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
-                            </StackPanel>
+                                    Margin="0,0,0,10"
+                                    FontWeight="Bold"
+                                    Text="脚本、配置文件路径" />
+                                <TextBox
+                                    x:Name="PythonCodeBox"
+                                    Grid.Column="0"
+                                    Margin="0,0,5,10"
+                                    IsReadOnly="True"
+                                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                    ToolTip="脚本路径" />
 
-                            <!--  自动提交  -->
-                            <StackPanel
-                                Margin="5"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
-                                <TextBlock
-                                    Margin="10,0,4,0"
-                                    VerticalAlignment="Center"
-                                    Text="自动提交" />
-                                <ToggleButton
-                                    x:Name="AutoSubmitToggle"
-                                    Width="40"
-                                    Height="20"
-                                    IsChecked="True"
-                                    Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
-                            </StackPanel>
+                                <Button
+                                    Grid.Column="1"
+                                    Click="BrowseButton_Click"
+                                    Content="浏览…"
+                                    Style="{StaticResource MaterialDesignRaisedButton}" />
 
-                            <!--  导出 Excel  -->
-                            <StackPanel
-                                Margin="5"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
-                                <TextBlock
-                                    Margin="10,0,4,0"
-                                    VerticalAlignment="Center"
-                                    Text="导出 Excel" />
-                                <ToggleButton
-                                    x:Name="ExportExcelToggle"
-                                    Width="40"
-                                    Height="20"
-                                    IsChecked="True"
-                                    Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
-                            </StackPanel>
-
-                            <!--  自动退出  -->
-                            <StackPanel
-                                Margin="5"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
-                                <TextBlock
-                                    Margin="10,0,4,0"
-                                    VerticalAlignment="Center"
-                                    Text="自动退出" />
-                                <ToggleButton
-                                    x:Name="AutoExitToggle"
-                                    Width="40"
-                                    Height="20"
-                                    IsChecked="True"
-                                    Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
-                            </StackPanel>
-
-                            <!--  仅登录  -->
-                            <StackPanel
-                                Margin="5"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
-                                <TextBlock
-                                    Margin="10,0,4,0"
-                                    VerticalAlignment="Center"
-                                    Text="仅登录" />
-                                <ToggleButton
-                                    x:Name="OnlyLoginToggle"
-                                    Width="40"
-                                    Height="20"
-                                    Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
-                            </StackPanel>
-
-
-
-                        </WrapPanel>
-
-                        <!--  路径设置  -->
-                        <TextBlock
-                            Margin="0,0,0,10"
-                            FontWeight="Bold"
-                            Text="脚本、配置文件路径" />
-                        <TextBox
-                            x:Name="PythonCodeBox"
-                            Grid.Column="0"
-                            Margin="0,0,5,10"
-                            IsReadOnly="True"
-                            Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                            ToolTip="脚本路径" />
-
-                        <Button
-                            Grid.Column="1"
-                            Click="BrowseButton_Click"
-                            Content="浏览…"
-                            Style="{StaticResource MaterialDesignRaisedButton}" />
-
-                        <!--  保存配置  -->
-                        <Button
-                            Margin="0,10,0,15"
-                            Click="SaveConfig_Click"
-                            Content="保存为 config.json"
-                            Style="{DynamicResource MaterialDesignOutlinedButton}" />
+                                <!--  保存配置  -->
+                                <Button
+                                    Margin="0,10,0,15"
+                                    Click="SaveConfig_Click"
+                                    Content="保存为 config.json"
+                                    Style="{DynamicResource MaterialDesignOutlinedButton}" />
 
                     </StackPanel>
                 </ScrollViewer>
@@ -622,33 +622,33 @@
                             HorizontalAlignment="Center"
                             Text="构建日期: 2050-11-15" />
 
-                        <TextBlock
-                            Margin="0,15,0,5"
-                            FontWeight="Bold"
-                            Text="功能说明:" />
-                        <TextBlock
-                            Margin="10,0,0,5"
-                            Text="1. 自动登录用车复核系统"
-                            TextWrapping="Wrap" />
-                        <TextBlock
-                            Margin="10,0,0,5"
-                            Text="2. 定时执行复核任务"
-                            TextWrapping="Wrap" />
-                        <TextBlock
-                            Margin="10,0,0,5"
-                            Text="3. 支持多种导出格式"
-                            TextWrapping="Wrap" />
-                        <TextBlock
-                            Margin="10,0,0,20"
-                            Text="4. 详细日志记录"
-                            TextWrapping="Wrap" />
+                                <TextBlock
+                                    Margin="0,15,0,5"
+                                    FontWeight="Bold"
+                                    Text="功能说明:" />
+                                <TextBlock
+                                    Margin="10,0,0,5"
+                                    Text="1. 自动登录用车复核系统"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Margin="10,0,0,5"
+                                    Text="2. 定时执行复核任务"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Margin="10,0,0,5"
+                                    Text="3. 支持多种导出格式"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Margin="10,0,0,20"
+                                    Text="4. 详细日志记录"
+                                    TextWrapping="Wrap" />
 
-                        <TextBlock
-                            Margin="0,10,0,5"
-                            FontWeight="Bold"
-                            Text="技术支持:" />
-                        <TextBlock Margin="0,0,0,5" Text="邮箱: support@example.com" />
-                        <TextBlock Margin="0,0,0,20" Text="电话: 400-123-4567" />
+                                <TextBlock
+                                    Margin="0,10,0,5"
+                                    FontWeight="Bold"
+                                    Text="技术支持:" />
+                                <TextBlock Margin="0,0,0,5" Text="邮箱: support@example.com" />
+                                <TextBlock Margin="0,0,0,20" Text="电话: 400-123-4567" />
 
                         <Button
                             Width="120"
