@@ -1,5 +1,8 @@
-﻿using MaterialDesignThemes.Wpf;
+﻿using Hardcodet.Wpf.TaskbarNotification;
 using MaterialDesignColors;
+using MaterialDesignThemes.Wpf;
+using Microsoft.Win32;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -7,8 +10,9 @@ using System.Text;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
-using Microsoft.Win32;
+using System.Windows.Threading;
 
 namespace car_playwright_wpf
 {
@@ -16,6 +20,10 @@ namespace car_playwright_wpf
 
     public partial class MainWindow : Window
     {
+        // 单例模式，确保只有一个 MainWindow 实例
+        private static MainWindow _instance;
+        public static MainWindow Instance => _instance ??= new MainWindow();
+
         private readonly PaletteHelper _paletteHelper = new();
 
         // 添加类成员变量
@@ -25,7 +33,8 @@ namespace car_playwright_wpf
         public MainWindow()
         {
             InitializeComponent();
-
+            // 设置单例实例
+            Closed += (s, e) => _instance = null;
             // 获取程序集版本号
             string version = Assembly.GetExecutingAssembly()
                                      .GetName()
@@ -35,6 +44,38 @@ namespace car_playwright_wpf
 
             // 启动时检查脚本路径
             this.Loaded += MainWindow_Loaded;
+        }
+
+        // 添加定时任务开关方法（供托盘菜单调用）
+        public void ToggleScheduledTask()
+        {
+            // 这里调用你现有的定时任务切换逻辑
+            ToggleTaskButton_Click(null, null);
+        }
+
+        protected override void OnStateChanged(EventArgs e)
+        {
+            // 最小化时隐藏到托盘
+            if (WindowState == WindowState.Minimized)
+            {
+                //Hide();
+            }
+            //base.OnStateChanged(e);
+        }
+
+        // 重写关闭按钮行为（直接最小化）
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            // 仅当用户点击红 X 时隐藏到托盘
+            if (this.WindowState != WindowState.Minimized)
+            {
+                e.Cancel = true;
+                this.WindowState = WindowState.Minimized;
+                this.Hide();
+
+                var tray = (TaskbarIcon)Application.Current.FindResource("TrayIcon");
+                tray?.ShowBalloonTip("提示", "已最小化到托盘", BalloonIcon.Info);
+            }
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -135,6 +176,7 @@ namespace car_playwright_wpf
             RunningButton.Visibility = Visibility.Visible;
 
             StatusLabel.Text = "🕐 正在运行，请稍候...";
+            LogBox.AppendText("🕐 正在运行，请稍候...\n");
             ProgressBarControl.Value = 0;
             //LogBox.Clear();
 
@@ -148,6 +190,8 @@ namespace car_playwright_wpf
                 $"--slow_mo {SlowMoBox.Text}",
                 $"--navigation_timeout {NavigationTimeoutBox.Text}",
                 $"--default_timeout {DefaultTimeoutBox.Text}",
+                $"--auto_timeout {AutoTimeoutBox.Text}",
+                $"--auto_detect_timeout {AutoDetectTimeoutToggle.IsChecked?.ToString().ToLower()}",
                 $"--retry_times {RetryTimesBox.Text}",
                 $"--delay_after_click {DelayAfterClickBox.Text}",
                 $"--only_login {OnlyLoginToggle.IsChecked?.ToString().ToLower()}",
@@ -162,6 +206,7 @@ namespace car_playwright_wpf
                 $"--tesseract_path \"{TesseractPathBox.Text}\"",
                 $"--excel_prefix \"{ExcelPrefixBox.Text}\"",
                 $"--excel_monthly {ExcelMonthlyBox.IsChecked?.ToString().ToLower()}",
+                $"--excel_dir \"{ExcelDirBox.Text}\"",
                 $"--max_retry_on_error {MaxRetryOnErrorBox.Text}",
                 $"--input_timeout {InputTimeoutBox.Text}",
                 $"--order_time_threshold {OrderTimeThresholdBox.Text}",
@@ -299,6 +344,8 @@ namespace car_playwright_wpf
                 ["slow_mo"] = int.Parse(SlowMoBox.Text),
                 ["navigation_timeout"] = int.Parse(NavigationTimeoutBox.Text),
                 ["default_timeout"] = int.Parse(DefaultTimeoutBox.Text),
+                ["auto_timeout"] = AutoTimeoutBox.Text,
+                ["auto_detect_timeout"] = AutoDetectTimeoutToggle.IsChecked == true,
                 ["retry_times"] = int.Parse(RetryTimesBox.Text),
                 ["delay_after_click"] = double.Parse(DelayAfterClickBox.Text),
                 ["only_login"] = OnlyLoginToggle.IsChecked == true,
@@ -313,6 +360,7 @@ namespace car_playwright_wpf
                 ["tesseract_path"] = TesseractPathBox.Text,
                 ["excel_prefix"] = ExcelPrefixBox.Text,
                 ["excel_monthly"] = ExcelMonthlyBox.IsChecked == true,
+                ["excel_dir"] = ExcelDirBox.Text,
                 ["max_retry_on_error"] = int.Parse(MaxRetryOnErrorBox.Text),
                 ["input_timeout"] = int.Parse(InputTimeoutBox.Text),
                 ["order_time_threshold"] = int.Parse(OrderTimeThresholdBox.Text),
@@ -336,32 +384,45 @@ namespace car_playwright_wpf
             // 脚本同目录（如有脚本路径）
             if (!string.IsNullOrWhiteSpace(PythonCodeBox.Text))
             {
-                string scriptDir = Path.GetDirectoryName(PythonCodeBox.Text)!;
-                string scriptConfigPath = Path.Combine(scriptDir, "python_config.json");
-                File.WriteAllText(scriptConfigPath, pythonJson);
+                try
+                {
+                    string scriptDir = Path.GetDirectoryName(PythonCodeBox.Text);
+                    if (!string.IsNullOrEmpty(scriptDir) && Directory.Exists(scriptDir))
+                    {
+                        string scriptConfigPath = Path.Combine(scriptDir, "python_config.json");
+                        File.WriteAllText(scriptConfigPath, pythonJson);
+                        AppendLog($"配置已保存到脚本目录: {scriptConfigPath}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    AppendLog($"保存到脚本目录时出错: {ex.Message}");
+                }
             }
 
             StatusLabel.Text = "✅ Python配置已保存";
+            AppendLog($"配置已保存到用户目录: {pythonConfigPath}");
+
+
         }
 
 
 
         private void AppendLog(string message)
         {
-            string logEntry = $"[{DateTime.Now:HH:mm:ss}] {message}\n";
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                string logEntry = $"[{DateTime.Now:HH:mm:ss}] {message}\n";
 
-            LogBox.AppendText(message + "\n");
+                var paragraph = new Paragraph(new Run(logEntry));
+                LogBox.Document.Blocks.Add(paragraph);
 
-            // WPF
-            LogBox.ScrollToEnd();
-
-            // 或者 WinForms
-            // LogBox.SelectionStart = LogBox.TextLength;
-            // LogBox.ScrollToCaret();
+                LogBox.ScrollToEnd();
+            }), DispatcherPriority.Background);
         }
 
         // 按钮点击或按回车时调用
-        private void SendContinueSignal()
+        private async void SendContinueSignal()
         {
             if (runningProcess == null || runningProcess.HasExited)
             {
@@ -377,25 +438,28 @@ namespace car_playwright_wpf
                 return;
             }
 
-            string filePath = "continue.txt";
+            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "continue.txt");
             try
             {
-                if (!File.Exists(filePath))
+                // 无论是否存在都重新写入信号
+                File.WriteAllText(filePath, "go");
+                AppendLog("📨 已发送继续信号 (continue.txt)");
+                StatusLabel.Text = "✅ 已发送继续信号";
+
+                // 延迟 2 秒自动删除
+                await Task.Delay(2000);
+                if (File.Exists(filePath))
                 {
-                    File.WriteAllText(filePath, "go");
-                    LogBox.AppendText("📨 已发送继续信号 (continue.txt)\n");
-                    StatusLabel.Text = "✅ 已发送继续信号";
-                }
-                else
-                {
-                    LogBox.AppendText("📁 continue.txt 已存在，无需重复发送\n");
+                    File.Delete(filePath);
+                    AppendLog("🗑️ 已自动清除 continue.txt（超时未被脚本读取）");
                 }
             }
             catch (Exception ex)
             {
-                LogBox.AppendText($"⚠️ 写入 continue.txt 失败: {ex.Message}\n");
+                AppendLog($"⚠️ 写入 continue.txt 失败: {ex.Message}");
             }
         }
+
 
 
         // 按钮点击事件
@@ -444,7 +508,10 @@ namespace car_playwright_wpf
         // 清空日志按钮点击事件
         private void ClearLogs_Click(object sender, RoutedEventArgs e)
         {
-            LogBox.Clear();  // 清空日志内容
+            Dispatcher.Invoke(() =>
+            {
+                LogBox.Document.Blocks.Clear();
+            });  // 清空日志内容
         }
 
         // 导出日志按钮点击事件
@@ -461,7 +528,9 @@ namespace car_playwright_wpf
 
                 if (dlg.ShowDialog() == true)
                 {
-                    System.IO.File.WriteAllText(dlg.FileName, LogBox.Text);
+                    // 修复：RichTextBox 没有 Text 属性，需通过 TextRange 获取内容
+                    var textRange = new TextRange(LogBox.Document.ContentStart, LogBox.Document.ContentEnd);
+                    System.IO.File.WriteAllText(dlg.FileName, textRange.Text);
                     System.Windows.MessageBox.Show("日志导出成功", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
@@ -534,6 +603,8 @@ namespace car_playwright_wpf
             SlowMoBox.Text = pyConfig.GetProperty("slow_mo").ToString();
             NavigationTimeoutBox.Text = pyConfig.GetProperty("navigation_timeout").ToString();
             DefaultTimeoutBox.Text = pyConfig.GetProperty("default_timeout").ToString();
+            AutoTimeoutBox.Text = pyConfig.GetProperty("auto_timeout").GetString() ?? "";
+            AutoDetectTimeoutToggle.IsChecked = pyConfig.GetProperty("auto_detect_timeout").GetBoolean();
             RetryTimesBox.Text = pyConfig.GetProperty("retry_times").ToString();
             DelayAfterClickBox.Text = pyConfig.GetProperty("delay_after_click").ToString();
             OnlyLoginToggle.IsChecked = pyConfig.GetProperty("only_login").GetBoolean();
@@ -547,6 +618,7 @@ namespace car_playwright_wpf
             TesseractPathBox.Text = pyConfig.GetProperty("tesseract_path").GetString() ?? "";
             ExcelPrefixBox.Text = pyConfig.GetProperty("excel_prefix").GetString() ?? "";
             ExcelMonthlyBox.IsChecked = pyConfig.GetProperty("excel_monthly").GetBoolean();
+            ExcelDirBox.Text = pyConfig.GetProperty("excel_dir").GetString() ?? "";
             MaxRetryOnErrorBox.Text = pyConfig.GetProperty("max_retry_on_error").ToString();
             InputTimeoutBox.Text = pyConfig.GetProperty("input_timeout").ToString();
             OrderTimeThresholdBox.Text = pyConfig.GetProperty("order_time_threshold").ToString();
@@ -610,7 +682,14 @@ namespace car_playwright_wpf
                         LastRunTimeLabel.Text = DateTime.Now.ToString("yyyy-MM-dd HH:mm");
                         TaskStatusLabel.Text = "运行中";
                         NextRunTimeLabel.Text = _scheduler!.NextRun.ToString("yyyy-MM-dd HH:mm");
-                        LogBox.Text += $"定时任务开始执行》》》";
+                        // LogBox.Text += $"定时任务开始执行》》》";
+                        // 将所有 LogBox.Text += ... 替换为通过 TextRange 追加文本
+                        // 例如，将
+                        // LogBox.Text += $"定时任务开始执行》》》";
+                        // 替换为如下代码：
+
+                        var textRange = new TextRange(LogBox.Document.ContentEnd, LogBox.Document.ContentEnd);
+                        textRange.Text = $"定时任务开始执行》》》";
                         //时间到了点击按钮？
                         RunButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                         
@@ -619,7 +698,12 @@ namespace car_playwright_wpf
 
                 TaskStatusLabel.Text = "已启用";
                 NextRunTimeLabel.Text = _scheduler.NextRun.ToString("yyyy‑MM‑dd HH:mm");
-                LogBox.Text += $"定时任务已启用，上一次运行时间:{LastRunTimeLabel.Text}，下一次运行时间: {NextRunTimeLabel.Text}\n";
+                // 其它类似的 LogBox.Text += ... 也需做同样替换
+                // 例如：
+                // LogBox.Text += $"定时任务已启用，上一次运行时间:{LastRunTimeLabel.Text}，下一次运行时间: {NextRunTimeLabel.Text}\n";
+                // 替换为：
+                var textRange1 = new TextRange(LogBox.Document.ContentEnd, LogBox.Document.ContentEnd);
+                textRange1.Text = $"定时任务已启用，上一次运行时间:{LastRunTimeLabel.Text}，下一次运行时间: {NextRunTimeLabel.Text}\n";
                 ToggleTaskButton.Visibility = Visibility.Collapsed;
                 RunningToggleTaskButton.Visibility = Visibility.Visible;
             }
@@ -629,12 +713,25 @@ namespace car_playwright_wpf
                 _scheduler = null;
                 TaskStatusLabel.Text = "未启用";
                 NextRunTimeLabel.Text = "--";
-                LogBox.Text += $"定时任务已停止，上一次运行时间:{LastRunTimeLabel.Text}，下一次运行时间: {NextRunTimeLabel.Text}\n";
+                // LogBox.Text += $"定时任务已停止，上一次运行时间:{LastRunTimeLabel.Text}，下一次运行时间: {NextRunTimeLabel.Text}\n";
+                // 替换为：
+                var textRange2 = new TextRange(LogBox.Document.ContentEnd, LogBox.Document.ContentEnd);
+                textRange2.Text = $"定时任务已停止，上一次运行时间:{LastRunTimeLabel.Text}，下一次运行时间: {NextRunTimeLabel.Text}\n";
                 RunningToggleTaskButton.Visibility = Visibility.Collapsed;
                 ToggleTaskButton.Visibility = Visibility.Visible;
             }
 
             await Task.CompletedTask;
+
         }
+        private async void ResetSettings_Click(object sender, RoutedEventArgs e)
+        {
+            // 恢复为 Settings.settings 里的默认值
+            Properties.Settings.Default.Reset();
+            Properties.Settings.Default.Save();
+
+            await MDMessage.Show("设置已恢复为默认值");
+        }
+
     }
 }

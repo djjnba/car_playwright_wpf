@@ -4,19 +4,22 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     Title="用车复核配置器"
-    Width="1000"
-    MinHeight="600"
+    Width="900"
+    Height="570"
     Background="{DynamicResource MaterialDesignPaper}"
     Closing="Window_Closing"
     FontFamily="{DynamicResource MaterialDesignFont}"
+    Icon="Resources/icon.ico"
     KeyDown="Window_KeyDown"
     PreviewKeyDown="Window_PreviewKeyDown"
+    ResizeMode="CanMinimize"
     SizeToContent="Height"
     Style="{StaticResource MaterialDesignWindow}"
     TextElement.Foreground="{DynamicResource MaterialDesignBody}"
     WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
+        <BitmapImage x:Key="TrayIcon" UriSource="/Resources/icon.ico" />
         <Storyboard x:Key="ExpandWindow">
             <DoubleAnimation
                 AccelerationRatio="0.2"
@@ -35,680 +38,838 @@
         </Storyboard>
     </Window.Resources>
 
-    <!--  主网格布局，分为内容区和底部日志区  -->
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="600" />
-            <!--  主内容区自适应  -->
-            <RowDefinition Height="Auto" />
-            <!--  日志区展开时占用实际高度  -->
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+    <materialDesign:DialogHost Identifier="RootDialog">
+        <!--  主网格布局，分为内容区和底部日志区  -->
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="500" />
+                <!--  主内容区自适应  -->
+                <RowDefinition Height="Auto" />
+                <!--  日志区展开时占用实际高度  -->
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
-        <!--  左侧固定 TabControl，不受右侧滚动影响  -->
-        <TabControl
-            Grid.Row="0"
-            Grid.RowSpan="2"
-            Grid.Column="0"
-            materialDesign:ColorZoneAssist.Mode="PrimaryMid"
-            Background="{DynamicResource MaterialDesignPaper}"
-            BorderBrush="{DynamicResource MaterialDesignDivider}"
-            BorderThickness="1"
-            ItemsSource="{Binding Tabs}"
-            SelectedItem="{Binding SelectedTab}"
-            TabIndex="1"
-            TabStripPlacement="Left">
+            <!--  左侧固定 TabControl，不受右侧滚动影响  -->
+            <TabControl
+                Grid.Row="0"
+                Grid.RowSpan="2"
+                Grid.Column="0"
+                materialDesign:ColorZoneAssist.Mode="PrimaryMid"
+                Background="{DynamicResource MaterialDesignPaper}"
+                BorderBrush="{DynamicResource MaterialDesignDivider}"
+                BorderThickness="1"
+                ItemsSource="{Binding Tabs}"
+                SelectedIndex="0"
+                TabStripPlacement="Left">
 
-            <!--  TabItems: 状态 / 设置 / …  -->
-            <TabItem Header="状态">
-                <!--  状态内容  -->
+                <!--  TabItems: 状态 / 设置 / …  -->
+                <TabItem Header="状态" TabIndex="1">
+                    <!--  状态内容  -->
 
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="10" Background="{DynamicResource MaterialDesignPaper}">
-                        <!--  状态信息  -->
-                        <TextBlock
-                            Margin="0,0,0,5"
-                            FontWeight="Bold"
-                            Text="当前状态：" />
-                        <TextBlock
-                            Name="StatusLabel"
-                            Margin="0,0,0,10"
-                            Text="未开始" />
-
-                        <!--  进度条  -->
-                        <TextBlock
-                            Margin="0,10,0,5"
-                            FontWeight="Bold"
-                            Text="执行进度：" />
-                        <ProgressBar
-                            Name="ProgressBarControl"
-                            Height="20"
-                            Margin="0,0,0,10"
-                            Maximum="100"
-                            Minimum="0" />
-
-                        <!--  操作按钮  -->
-                        <!--  启动按钮  -->
-                        <Button
-                            x:Name="RunButton"
-                            Height="40"
-                            Margin="0,10"
-                            Click="RunButton_Click"
-                            Content="🚗 启动复核"
-                            Style="{DynamicResource MaterialDesignRaisedButton}"
-                            Visibility="Visible" />
-
-                        <!--  运行中按钮（带进度/动画）  -->
-                        <Button
-                            x:Name="RunningButton"
-                            Height="40"
-                            Margin="0,10"
-                            materialDesign:ButtonProgressAssist.IsIndeterminate="True"
-                            materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
-                            Click="StopButton_Click"
-                            Content="用车复核进行中...点击停止"
-                            Style="{DynamicResource MaterialDesignRaisedButton}"
-                            Visibility="Collapsed" />
-                        <Button
-                            x:Name="StopButton"
-                            Height="40"
-                            Margin="0,5"
-                            Click="StopButton_Click"
-                            Content="强制停止"
-                            IsEnabled="True"
-                            Style="{DynamicResource MaterialDesignOutlinedButton}" />
-
-
-                        <ToggleButton
-                            x:Name="DarkModeToggle"
-                            Width="120"
-                            Height="32"
-                            Checked="DarkModeToggle_Checked"
-                            Content="🌙深色主题"
-                            Style="{DynamicResource MaterialDesignSwitchToggleButton}"
-                            Unchecked="DarkModeToggle_Unchecked" />
-                    </StackPanel>
-                </ScrollViewer>
-
-            </TabItem>
-            <TabItem Header="设置">
-                <!--  设置内容  -->
-                <ScrollViewer Padding="10" VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="10,10,10,10">
-                        <!--  用户信息  -->
-                        <TextBlock
-                            Margin="0,0,0,10"
-                            FontWeight="Bold"
-                            Text="账户设置" />
-
-                        <TextBox
-                            Name="UsernameBox"
-                            Margin="0,0,0,10"
-                            VerticalAlignment="Top"
-                            materialDesign:HintAssist.HelperText=" "
-                            materialDesign:HintAssist.Hint="账号/用户名(validated)"
-                            Style="{StaticResource MaterialDesignFilledTextBox}"
-                            Text="" />
-
-                        <PasswordBox
-                            Name="PasswordBox"
-                            Margin="0,0,0,15"
-                            materialDesign:HintAssist.HelperText=" "
-                            materialDesign:HintAssist.Hint="密码(validated)"
-                            IsEnabled="{Binding Path=IsChecked, ElementName=MaterialDesignFilledPasswordBoxEnabledComboBox}"
-                            Style="{StaticResource MaterialDesignFilledPasswordBox}" />
-
-
-
-                        <!--  常用设置  -->
-                        <TextBlock
-                            Margin="0,0,0,10"
-                            FontWeight="Bold"
-                            Text="常用选项" />
-
-                        <WrapPanel Margin="5">
-                            <!--  无头模式  -->
-                            <StackPanel
-                                Margin="5"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
-                                <TextBlock
-                                    Margin="0,0,4,0"
-                                    VerticalAlignment="Center"
-                                    Text="无头模式" />
-                                <ToggleButton
-                                    x:Name="HeadlessToggle"
-                                    Width="40"
-                                    Height="20"
-                                    Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
-                            </StackPanel>
-
-                            <!--  自动提交  -->
-                            <StackPanel
-                                Margin="5"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
-                                <TextBlock
-                                    Margin="10,0,4,0"
-                                    VerticalAlignment="Center"
-                                    Text="自动提交" />
-                                <ToggleButton
-                                    x:Name="AutoSubmitToggle"
-                                    Width="40"
-                                    Height="20"
-                                    IsChecked="True"
-                                    Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
-                            </StackPanel>
-
-                            <!--  导出 Excel  -->
-                            <StackPanel
-                                Margin="5"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
-                                <TextBlock
-                                    Margin="10,0,4,0"
-                                    VerticalAlignment="Center"
-                                    Text="导出 Excel" />
-                                <ToggleButton
-                                    x:Name="ExportExcelToggle"
-                                    Width="40"
-                                    Height="20"
-                                    IsChecked="True"
-                                    Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
-                            </StackPanel>
-
-                            <!--  自动退出  -->
-                            <StackPanel
-                                Margin="5"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
-                                <TextBlock
-                                    Margin="10,0,4,0"
-                                    VerticalAlignment="Center"
-                                    Text="自动退出" />
-                                <ToggleButton
-                                    x:Name="AutoExitToggle"
-                                    Width="40"
-                                    Height="20"
-                                    IsChecked="True"
-                                    Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
-                            </StackPanel>
-
-                            <!--  仅登录  -->
-                            <StackPanel
-                                Margin="5"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
-                                <TextBlock
-                                    Margin="10,0,4,0"
-                                    VerticalAlignment="Center"
-                                    Text="仅登录" />
-                                <ToggleButton
-                                    x:Name="OnlyLoginToggle"
-                                    Width="40"
-                                    Height="20"
-                                    Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
-                            </StackPanel>
-
-
-
-                        </WrapPanel>
-
-                        <!--  路径设置  -->
-                        <TextBlock
-                            Margin="0,0,0,10"
-                            FontWeight="Bold"
-                            Text="脚本、配置文件路径" />
-                        <TextBox
-                            x:Name="PythonCodeBox"
-                            Grid.Column="0"
-                            Margin="0,0,5,10"
-                            IsReadOnly="True"
-                            Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                            ToolTip="脚本路径" />
-
-                        <Button
-                            Grid.Column="1"
-                            Click="BrowseButton_Click"
-                            Content="浏览…"
-                            Style="{StaticResource MaterialDesignRaisedButton}" />
-
-                        <!--  保存配置  -->
-                        <Button
-                            Margin="0,10,0,15"
-                            Click="SaveConfig_Click"
-                            Content="保存为 config.json"
-                            Style="{DynamicResource MaterialDesignOutlinedButton}" />
-
-                    </StackPanel>
-                </ScrollViewer>
-            </TabItem>
-            <TabItem Header="高级">
-                <!--  高级内容  -->
-                <ScrollViewer Padding="10" VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="10,10,10,10">
-
-                        <!--  超时设置  -->
-                        <TextBlock
-                            Margin="0,5,5,5"
-                            FontWeight="Bold"
-                            Text="超时设置" />
-
-                        <WrapPanel Margin="2">
-                            <StackPanel
-                                Margin="2"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
-                                <TextBox
-                                    Name="SlowMoBox"
-                                    MaxWidth="400"
-                                    Margin="0,0,10,0"
-                                    VerticalAlignment="Top"
-                                    materialDesign:HintAssist.Hint="操作间隔 (ms)"
-                                    AcceptsReturn="True"
-                                    FontSize="15"
-                                    IsEnabled="{Binding Path=IsChecked, ElementName=MaterialDesignFilledTextBoxEnabledComboBox}"
-                                    Style="{StaticResource MaterialDesignFilledTextBox}"
-                                    Text="100"
-                                    TextWrapping="Wrap" />
-
-                                <TextBox
-                                    Name="NavigationTimeoutBox"
-                                    MaxWidth="400"
-                                    Margin="0,0,10,0"
-                                    VerticalAlignment="Top"
-                                    materialDesign:HintAssist.Hint="导航超时 (ms):"
-                                    AcceptsReturn="True"
-                                    FontSize="15"
-                                    IsEnabled="{Binding Path=IsChecked, ElementName=MaterialDesignFilledTextBoxEnabledComboBox}"
-                                    Style="{StaticResource MaterialDesignFilledTextBox}"
-                                    Text="20000"
-                                    TextWrapping="Wrap" />
-
-                                <TextBox
-                                    Name="DefaultTimeoutBox"
-                                    MaxWidth="400"
-                                    Margin="0,0,10,0"
-                                    VerticalAlignment="Top"
-                                    materialDesign:HintAssist.Hint="默认超时 (ms):"
-                                    AcceptsReturn="True"
-                                    FontSize="15"
-                                    IsEnabled="{Binding Path=IsChecked, ElementName=MaterialDesignFilledTextBoxEnabledComboBox}"
-                                    Style="{StaticResource MaterialDesignFilledTextBox}"
-                                    Text="6000"
-                                    TextWrapping="Wrap" />
-
-                                <TextBox
-                                    Name="InputTimeoutBox"
-                                    MaxWidth="400"
-                                    Margin="0,0,10,0"
-                                    VerticalAlignment="Top"
-                                    materialDesign:HintAssist.Hint="异常输入等待超时 (秒):"
-                                    AcceptsReturn="True"
-                                    FontSize="15"
-                                    IsEnabled="{Binding Path=IsChecked, ElementName=MaterialDesignFilledTextBoxEnabledComboBox}"
-                                    Style="{StaticResource MaterialDesignFilledTextBox}"
-                                    Text="30"
-                                    TextWrapping="Wrap" />
-
-                            </StackPanel>
-                        </WrapPanel>
-
-
-                        <!--  重试设置  -->
-                        <TextBlock
-                            Margin="0,5,5,5"
-                            FontWeight="Bold"
-                            Text="重试设置" />
-
-                        <WrapPanel Margin="2">
-                            <StackPanel
-                                Margin="2"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
-                                <TextBlock Text="重试次数:" />
-                                <TextBox
-                                    Name="RetryTimesBox"
-                                    Margin="0,0,0,5"
-                                    Text="3" />
-                                <TextBlock Text="点击后延迟 (秒):" />
-                                <TextBox
-                                    Name="DelayAfterClickBox"
-                                    Margin="0,0,0,5"
-                                    Text="1.0" />
-                                <TextBlock Text="主程序异常重试次数:" />
-                                <TextBox
-                                    Name="MaxRetryOnErrorBox"
-                                    Margin="0,0,0,5"
-                                    Text="1" />
-                            </StackPanel>
-                        </WrapPanel>
-
-
-
-                        <!--  订单设置  -->
-                        <TextBlock
-                            Margin="0,10,0,10"
-                            FontWeight="Bold"
-                            Text="订单处理" />
-
-                        <WrapPanel Margin="2">
-                            <StackPanel
-                                Margin="2"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
-                                <TextBlock Text="订单时间差阈值 (小时):" />
-                                <TextBox
-                                    Name="OrderTimeThresholdBox"
-                                    Margin="0,0,0,5"
-                                    Text="4" />
-                                <TextBlock Text="订单最大重试次数:" />
-                                <TextBox
-                                    Name="OrderMaxRetryBox"
-                                    Margin="0,0,0,5"
-                                    Text="5" />
-                                <TextBlock Text="订单重试间隔 (秒):" />
-                                <TextBox
-                                    Name="OrderRetryDelayBox"
-                                    Margin="0,0,0,5"
-                                    Text="1.0" />
-                            </StackPanel>
-                        </WrapPanel>
-
-
-                        <!--  路径设置  -->
-                        <TextBlock
-                            Margin="0,10,0,10"
-                            FontWeight="Bold"
-                            Text="路径设置" />
-                        <TextBlock Text="基础网址：" />
-                        <TextBox
-                            Name="BaseUrlBox"
-                            Margin="0,0,0,5"
-                            Text="" />
-                        <TextBlock Text="Tesseract 路径：" />
-                        <TextBox
-                            Name="TesseractPathBox"
-                            Margin="0,0,0,5"
-                            Text="C:\Program Files\Tesseract-OCR\tesseract.exe" />
-                        <TextBlock Text="Excel 文件前缀：" />
-                        <TextBox
-                            Name="ExcelPrefixBox"
-                            Margin="0,0,0,5"
-                            Text="用车复核记录" />
-                        <TextBlock Text="日志文件名：" />
-                        <TextBox
-                            Name="LogFileBox"
-                            Margin="0,0,0,5"
-                            Text="program.log" />
-
-                        <!--  OCR及日志设置  -->
-                        <TextBlock
-                            Margin="0,10,0,10"
-                            FontWeight="Bold"
-                            Text="其他" />
-
-                        <WrapPanel Margin="2">
-                            <StackPanel
-                                Margin="2"
-                                VerticalAlignment="Center"
-                                Orientation="Horizontal">
-
-
-
-                                <ComboBox
-                                    Name="LogLevelBox"
-                                    Width="200"
-                                    MaxWidth="400"
-                                    Margin="0,0,10,15"
-                                    materialDesign:HintAssist.HelperText=" "
-                                    materialDesign:HintAssist.Hint="日志等级"
-                                    SelectedIndex="0"
-                                    Style="{StaticResource MaterialDesignFilledComboBox}">
-                                    <ComboBoxItem Content="DEBUG" />
-                                    <ComboBoxItem Content="INFO" />
-                                    <ComboBoxItem Content="WARNING" />
-                                    <ComboBoxItem Content="ERROR" />
-                                    <ComboBoxItem Content="CRITICAL" />
-                                </ComboBox>
-
-                                <ComboBox
-                                    Name="OcrLangBox"
-                                    Width="200"
-                                    MaxWidth="400"
-                                    Margin="0,0,10,15"
-                                    materialDesign:HintAssist.HelperText=" "
-                                    materialDesign:HintAssist.Hint="OCR语言"
-                                    SelectedIndex="0"
-                                    Style="{StaticResource MaterialDesignFilledComboBox}">
-                                    <ComboBoxItem Content="eng" />
-                                </ComboBox>
-
-                                <!--  导出选项  -->
-                                <CheckBox
-                                    Name="ExportJsonBox"
-                                    Margin="0,0,10,10"
-                                    Content="导出 JSON"
-                                    IsChecked="True" />
-                                <CheckBox
-                                    Name="ExcelMonthlyBox"
-                                    Margin="0,0,10,10"
-                                    Content="按月导出 Excel"
-                                    IsChecked="True" />
-                                <CheckBox
-                                    Name="DebugModeBox"
-                                    Margin="0,0,10,10"
-                                    Content="调试模式"
-                                    IsChecked="False" />
-                            </StackPanel>
-                        </WrapPanel>
-
-                    </StackPanel>
-
-                </ScrollViewer>
-            </TabItem>
-            <!--  定时运行 — TabItem  -->
-            <TabItem Header="定时运行">
-                <ScrollViewer Padding="10" VerticalScrollBarVisibility="Auto">
-                    <StackPanel Width="Auto" Margin="10">
-                        <!--  标题  -->
-                        <TextBlock
-                            Margin="0,0,0,15"
-                            FontSize="16"
-                            FontWeight="Bold"
-                            Text="定时任务配置" />
-
-                        <!--  时间设置区域  -->
-                        <GroupBox Margin="0,0,0,15" Header="时间设置">
-                            <StackPanel Orientation="Horizontal">
-                                <ComboBox
-                                    x:Name="FrequencyComboBox"
-                                    Width="200"
-                                    Margin="0,0,10,0"
-                                    materialDesign:HintAssist.Hint="执行周期"
-                                    SelectedIndex="0"
-                                    Style="{StaticResource MaterialDesignOutlinedComboBox}">
-                                    <ComboBoxItem Content="每小时" Tag="1" />
-                                    <ComboBoxItem Content="每天" Tag="24" />
-                                    <ComboBoxItem Content="每2天" Tag="48" />
-                                </ComboBox>
-                                <materialDesign:TimePicker
-                                    x:Name="TaskTimePicker"
-                                    Width="140"
-                                    materialDesign:HintAssist.Hint="起始时间"
-                                    Is24Hours="True"
-                                    SelectedTime="23:00"
-                                    Style="{StaticResource MaterialDesignOutlinedTimePicker}" />
-                            </StackPanel>
-                        </GroupBox>
-
-                        <!--  任务状态  -->
-                        <GroupBox Margin="0,0,0,15" Header="任务状态">
-                            <StackPanel>
-                                <TextBlock
-                                    x:Name="TaskStatusLabel"
-                                    Foreground="Gray"
-                                    Text="未启用" />
-                                <StackPanel Margin="0,10,0,0" Orientation="Vertical">
-                                    <TextBlock FontWeight="SemiBold" Text="上次执行时间:" />
-                                    <TextBlock
-                                        x:Name="LastRunTimeLabel"
-                                        Margin="10,0,0,0"
-                                        Text="--" />
-                                    <TextBlock FontWeight="SemiBold" Text="下次执行时间:" />
-                                    <TextBlock
-                                        x:Name="NextRunTimeLabel"
-                                        Margin="10,0,0,0"
-                                        Text="--" />
-                                </StackPanel>
-                            </StackPanel>
-                        </GroupBox>
-
-                        <!--  操作按钮  -->
-                        <StackPanel Margin="0,20,0,10">
-                            <!--  启用按钮  -->
-                            <Button
-                                x:Name="ToggleTaskButton"
-                                Height="40"
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="10" Background="{DynamicResource MaterialDesignPaper}">
+                            <!--  状态信息  -->
+                            <TextBlock
+                                Margin="0,0,0,5"
+                                FontWeight="Bold"
+                                Text="当前状态：" />
+                            <TextBlock
+                                Name="StatusLabel"
                                 Margin="0,0,0,10"
-                                Click="ToggleTaskButton_Click"
-                                Content="启用定时任务"
+                                Text="未开始" />
+
+                            <!--  进度条  -->
+                            <TextBlock
+                                Margin="0,10,0,5"
+                                FontWeight="Bold"
+                                Text="执行进度：" />
+                            <ProgressBar
+                                Name="ProgressBarControl"
+                                Height="20"
+                                Margin="0,0,0,10"
+                                Maximum="100"
+                                Minimum="0" />
+
+                            <!--  操作按钮  -->
+                            <!--  启动按钮  -->
+                            <Button
+                                x:Name="RunButton"
+                                Height="40"
+                                Margin="0,10"
+                                Click="RunButton_Click"
+                                Content="🚗 启动复核"
                                 Style="{DynamicResource MaterialDesignRaisedButton}"
                                 Visibility="Visible" />
 
-                            <!--  运行中按钮  -->
+                            <!--  运行中按钮（带进度/动画）  -->
                             <Button
-                                x:Name="RunningToggleTaskButton"
+                                x:Name="RunningButton"
                                 Height="40"
-                                Margin="0,0,0,10"
+                                Margin="0,10"
                                 materialDesign:ButtonProgressAssist.IsIndeterminate="True"
                                 materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
-                                Click="ToggleTaskButton_Click"
-                                Content="定时任务已启用，点击停止"
+                                Click="StopButton_Click"
+                                Content="用车复核进行中...点击停止"
                                 Style="{DynamicResource MaterialDesignRaisedButton}"
                                 Visibility="Collapsed" />
+                            <Button
+                                x:Name="StopButton"
+                                Height="40"
+                                Margin="0,5"
+                                Click="StopButton_Click"
+                                Content="强制停止"
+                                IsEnabled="True"
+                                Style="{DynamicResource MaterialDesignOutlinedButton}" />
 
                         </StackPanel>
+                    </ScrollViewer>
 
-                    </StackPanel>
-                </ScrollViewer>
-            </TabItem>
+                </TabItem>
+                <TabItem Header="设置" TabIndex="2">
+                    <!--  设置内容  -->
+                    <ScrollViewer
+                        Height="500"
+                        Padding="10"
+                        VerticalAlignment="Top"
+                        VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="10,10,10,10">
+                            <!--  用户信息  -->
+                            <GroupBox Margin="0,0,0,10" Header="账户设置">
+                                <StackPanel>
+                                    <TextBox
+                                        Name="UsernameBox"
+                                        Margin="0,0,0,10"
+                                        VerticalAlignment="Top"
+                                        materialDesign:HintAssist.HelperText=" "
+                                        materialDesign:HintAssist.Hint="账号/用户名(validated)"
+                                        Style="{StaticResource MaterialDesignFilledTextBox}"
+                                        Text="" />
+
+                                    <PasswordBox
+                                        Name="PasswordBox"
+                                        Margin="0,0,0,10"
+                                        materialDesign:HintAssist.HelperText=" "
+                                        materialDesign:HintAssist.Hint="密码(validated)"
+                                        IsEnabled="{Binding Path=IsChecked, ElementName=MaterialDesignFilledPasswordBoxEnabledComboBox}"
+                                        Style="{StaticResource MaterialDesignFilledPasswordBox}" />
+                                </StackPanel>
+                            </GroupBox>
 
 
-            <TabItem Header="关于">
-                <!--  关于内容  -->
-                <ScrollViewer Padding="20" VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="10,10,10,10">
-                        <Image
-                            Width="64"
-                            Height="64"
-                            Margin="0,0,0,20"
-                            HorizontalAlignment="Center" />
-                        <!--  Source="/Resources/icon.png"  -->
-                        <TextBlock
-                            Margin="0,0,0,10"
-                            HorizontalAlignment="Center"
-                            FontSize="18"
-                            FontWeight="Bold"
-                            Text="用车复核配置器" />
-                        <TextBlock
-                            Margin="0,0,0,5"
-                            HorizontalAlignment="Center"
-                            Text="版本: 1.0.0" />
-                        <TextBlock
-                            Margin="0,0,0,20"
-                            HorizontalAlignment="Center"
-                            Text="构建日期: 2050-11-15" />
+                            <!--  常用设置  -->
+                            <GroupBox Margin="0,0,0,15" Header="常用选项">
+                                <StackPanel>
+                                    <WrapPanel Margin="5">
+                                        <!--  无头模式  -->
+                                        <StackPanel
+                                            Margin="5"
+                                            VerticalAlignment="Center"
+                                            Orientation="Horizontal">
+                                            <TextBlock
+                                                Margin="0,0,4,0"
+                                                VerticalAlignment="Center"
+                                                Text="无头模式" />
+                                            <ToggleButton
+                                                x:Name="HeadlessToggle"
+                                                Width="40"
+                                                Height="20"
+                                                Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
+                                        </StackPanel>
 
-                        <TextBlock
-                            Margin="0,15,0,5"
-                            FontWeight="Bold"
-                            Text="功能说明:" />
-                        <TextBlock
-                            Margin="10,0,0,5"
-                            Text="1. 自动登录用车复核系统"
-                            TextWrapping="Wrap" />
-                        <TextBlock
-                            Margin="10,0,0,5"
-                            Text="2. 定时执行复核任务"
-                            TextWrapping="Wrap" />
-                        <TextBlock
-                            Margin="10,0,0,5"
-                            Text="3. 支持多种导出格式"
-                            TextWrapping="Wrap" />
-                        <TextBlock
-                            Margin="10,0,0,20"
-                            Text="4. 详细日志记录"
-                            TextWrapping="Wrap" />
+                                        <!--  自动提交  -->
+                                        <StackPanel
+                                            Margin="5"
+                                            VerticalAlignment="Center"
+                                            Orientation="Horizontal">
+                                            <TextBlock
+                                                Margin="10,0,4,0"
+                                                VerticalAlignment="Center"
+                                                Text="自动提交" />
+                                            <ToggleButton
+                                                x:Name="AutoSubmitToggle"
+                                                Width="40"
+                                                Height="20"
+                                                IsChecked="True"
+                                                Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
+                                        </StackPanel>
 
-                        <TextBlock
-                            Margin="0,10,0,5"
-                            FontWeight="Bold"
-                            Text="技术支持:" />
-                        <TextBlock Margin="0,0,0,5" Text="邮箱: support@example.com" />
-                        <TextBlock Margin="0,0,0,20" Text="电话: 400-123-4567" />
+                                        <!--  导出 Excel  -->
+                                        <StackPanel
+                                            Margin="5"
+                                            VerticalAlignment="Center"
+                                            Orientation="Horizontal">
+                                            <TextBlock
+                                                Margin="10,0,4,0"
+                                                VerticalAlignment="Center"
+                                                Text="导出 Excel" />
+                                            <ToggleButton
+                                                x:Name="ExportExcelToggle"
+                                                Width="40"
+                                                Height="20"
+                                                IsChecked="True"
+                                                Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
+                                        </StackPanel>
 
+                                        <!--  自动退出  -->
+                                        <StackPanel
+                                            Margin="5"
+                                            VerticalAlignment="Center"
+                                            Orientation="Horizontal">
+                                            <TextBlock
+                                                Margin="10,0,4,0"
+                                                VerticalAlignment="Center"
+                                                Text="自动退出" />
+                                            <ToggleButton
+                                                x:Name="AutoExitToggle"
+                                                Width="40"
+                                                Height="20"
+                                                IsChecked="True"
+                                                Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
+                                        </StackPanel>
+
+                                        <!--  仅登录  -->
+                                        <StackPanel
+                                            Margin="5"
+                                            VerticalAlignment="Center"
+                                            Orientation="Horizontal">
+                                            <TextBlock
+                                                Margin="10,0,4,0"
+                                                VerticalAlignment="Center"
+                                                Text="仅登录" />
+                                            <ToggleButton
+                                                x:Name="OnlyLoginToggle"
+                                                Width="40"
+                                                Height="20"
+                                                Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
+                                        </StackPanel>
+
+                                        <!--  深色主题  -->
+                                        <StackPanel
+                                            Margin="5"
+                                            VerticalAlignment="Center"
+                                            Orientation="Horizontal">
+                                            <TextBlock
+                                                Margin="10,0,4,0"
+                                                VerticalAlignment="Center"
+                                                Text="🌙深色主题" />
+                                            <ToggleButton
+                                                x:Name="DarkModeToggle"
+                                                Width="40"
+                                                Height="20"
+                                                Checked="DarkModeToggle_Checked"
+                                                Style="{DynamicResource MaterialDesignSwitchToggleButton}"
+                                                Unchecked="DarkModeToggle_Unchecked" />
+                                        </StackPanel>
+
+                                        <!--  深色主题  -->
+                                        <StackPanel
+                                            Margin="5"
+                                            VerticalAlignment="Center"
+                                            Orientation="Horizontal">
+                                            <TextBlock
+                                                Margin="0,0,4,0"
+                                                VerticalAlignment="Center"
+                                                Text="自动延迟" />
+                                            <ToggleButton
+                                                x:Name="AutoDetectTimeoutToggle"
+                                                Width="40"
+                                                Height="20"
+                                                IsChecked="True"
+                                                Style="{DynamicResource MaterialDesignSwitchToggleButton}"
+                                                Unchecked="DarkModeToggle_Unchecked" />
+                                        </StackPanel>
+                                    </WrapPanel>
+                                </StackPanel>
+                            </GroupBox>
+                            <!--  路径设置  -->
+                            <GroupBox Margin="0,0,0,15" Header="脚本、配置文件路径">
+                                <StackPanel>
+
+                                    <TextBox
+                                        x:Name="PythonCodeBox"
+                                        Grid.Column="0"
+                                        Margin="0,0,0,10"
+                                        IsReadOnly="True"
+                                        Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                        ToolTip="脚本路径" />
+
+                                    <Button
+                                        Grid.Column="1"
+                                        Click="BrowseButton_Click"
+                                        Content="浏览…"
+                                        Style="{StaticResource MaterialDesignOutlinedButton}" />
+                                </StackPanel>
+                            </GroupBox>
+
+                            <!--  保存配置  -->
+                            <Button
+                                Margin="0,0,0,10"
+                                Click="SaveConfig_Click"
+                                Content="保存为 config.json"
+                                Style="{DynamicResource MaterialDesignRaisedButton}" />
+
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+                <TabItem Header="高级" TabIndex="3">
+                    <!--  高级内容  -->
+                    <ScrollViewer
+                        Height="500"
+                        Padding="10"
+                        VerticalAlignment="Top"
+                        VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="10,10,10,10">
+                            <!--  超时设置  -->
+                            <GroupBox Margin="0,0,0,10" Header="超时设置">
+                                <StackPanel>
+                                    <WrapPanel Margin="0">
+                                        <StackPanel
+                                            Margin="0"
+                                            VerticalAlignment="Center"
+                                            Orientation="Horizontal">
+                                            <TextBox
+                                                Name="SlowMoBox"
+                                                MaxWidth="400"
+                                                Margin="0,0,10,0"
+                                                VerticalAlignment="Top"
+                                                materialDesign:HintAssist.Hint="操作间隔 (ms)"
+                                                AcceptsReturn="True"
+                                                FontSize="15"
+                                                IsEnabled="{Binding Path=IsChecked, ElementName=MaterialDesignFilledTextBoxEnabledComboBox}"
+                                                Style="{StaticResource MaterialDesignFilledTextBox}"
+                                                Text="100"
+                                                TextWrapping="Wrap" />
+
+                                            <TextBox
+                                                Name="NavigationTimeoutBox"
+                                                MaxWidth="400"
+                                                Margin="0,0,10,0"
+                                                VerticalAlignment="Top"
+                                                materialDesign:HintAssist.Hint="导航超时 (ms):"
+                                                AcceptsReturn="True"
+                                                FontSize="15"
+                                                IsEnabled="{Binding Path=IsChecked, ElementName=MaterialDesignFilledTextBoxEnabledComboBox}"
+                                                Style="{StaticResource MaterialDesignFilledTextBox}"
+                                                Text="20000"
+                                                TextWrapping="Wrap" />
+
+                                            <TextBox
+                                                Name="DefaultTimeoutBox"
+                                                MaxWidth="400"
+                                                Margin="0,0,10,0"
+                                                VerticalAlignment="Top"
+                                                materialDesign:HintAssist.Hint="默认超时 (ms):"
+                                                AcceptsReturn="True"
+                                                FontSize="15"
+                                                IsEnabled="{Binding Path=IsChecked, ElementName=MaterialDesignFilledTextBoxEnabledComboBox}"
+                                                Style="{StaticResource MaterialDesignFilledTextBox}"
+                                                Text="6000"
+                                                TextWrapping="Wrap" />
+
+                                            <TextBox
+                                                Name="InputTimeoutBox"
+                                                MaxWidth="400"
+                                                Margin="0,0,10,0"
+                                                VerticalAlignment="Top"
+                                                materialDesign:HintAssist.Hint="异常输入等待超时 (秒):"
+                                                AcceptsReturn="True"
+                                                FontSize="15"
+                                                IsEnabled="{Binding Path=IsChecked, ElementName=MaterialDesignFilledTextBoxEnabledComboBox}"
+                                                Style="{StaticResource MaterialDesignFilledTextBox}"
+                                                Text="30"
+                                                TextWrapping="Wrap" />
+
+                                            <TextBox
+                                                Name="AutoTimeoutBox"
+                                                MaxWidth="400"
+                                                Margin="0,0,10,0"
+                                                VerticalAlignment="Top"
+                                                materialDesign:HintAssist.Hint="自动延迟"
+                                                AcceptsReturn="True"
+                                                FontSize="15"
+                                                IsEnabled="{Binding Path=IsChecked, ElementName=MaterialDesignFilledTextBoxEnabledComboBox}"
+                                                Style="{StaticResource MaterialDesignFilledTextBox}"
+                                                Text="0"
+                                                TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </WrapPanel>
+                                </StackPanel>
+                            </GroupBox>
+                            <!--  重试设置  -->
+                            <GroupBox Margin="0,0,0,10" Header="重试设置">
+                                <StackPanel>
+                                    <WrapPanel>
+                                        <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                            <TextBox
+                                                Name="RetryTimesBox"
+                                                MaxWidth="400"
+                                                Margin="0,0,10,0"
+                                                VerticalAlignment="Top"
+                                                materialDesign:HintAssist.Hint="重试次数"
+                                                AcceptsReturn="True"
+                                                FontSize="15"
+                                                IsEnabled="{Binding Path=IsChecked, ElementName=MaterialDesignFilledTextBoxEnabledComboBox}"
+                                                Style="{StaticResource MaterialDesignFilledTextBox}"
+                                                Text="3"
+                                                TextWrapping="Wrap" />
+
+                                            <TextBox
+                                                Name="DelayAfterClickBox"
+                                                MaxWidth="400"
+                                                Margin="0,0,10,0"
+                                                VerticalAlignment="Top"
+                                                materialDesign:HintAssist.Hint="点击后延迟 (秒):"
+                                                AcceptsReturn="True"
+                                                FontSize="15"
+                                                IsEnabled="{Binding Path=IsChecked, ElementName=MaterialDesignFilledTextBoxEnabledComboBox}"
+                                                Style="{StaticResource MaterialDesignFilledTextBox}"
+                                                Text="1.0"
+                                                TextWrapping="Wrap" />
+
+                                            <TextBox
+                                                Name="MaxRetryOnErrorBox"
+                                                MaxWidth="400"
+                                                Margin="0,0,10,0"
+                                                VerticalAlignment="Top"
+                                                materialDesign:HintAssist.Hint="主程序异常重试次数:"
+                                                AcceptsReturn="True"
+                                                FontSize="15"
+                                                IsEnabled="{Binding Path=IsChecked, ElementName=MaterialDesignFilledTextBoxEnabledComboBox}"
+                                                Style="{StaticResource MaterialDesignFilledTextBox}"
+                                                Text="1"
+                                                TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </WrapPanel>
+                                </StackPanel>
+                            </GroupBox>
+
+                            <!--  订单设置  -->
+                            <GroupBox Margin="0,0,0,10" Header="订单处理">
+                                <StackPanel>
+                                    <WrapPanel>
+                                        <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                            <TextBox
+                                                Name="OrderTimeThresholdBox"
+                                                MaxWidth="400"
+                                                Margin="0,0,10,0"
+                                                VerticalAlignment="Top"
+                                                materialDesign:HintAssist.Hint="订单时间差阈值 (小时):"
+                                                AcceptsReturn="True"
+                                                FontSize="15"
+                                                IsEnabled="{Binding Path=IsChecked, ElementName=MaterialDesignFilledTextBoxEnabledComboBox}"
+                                                Style="{StaticResource MaterialDesignFilledTextBox}"
+                                                Text="4"
+                                                TextWrapping="Wrap" />
+                                            <TextBox
+                                                Name="OrderMaxRetryBox"
+                                                MaxWidth="400"
+                                                Margin="0,0,10,0"
+                                                VerticalAlignment="Top"
+                                                materialDesign:HintAssist.Hint="订单最大重试次数:"
+                                                AcceptsReturn="True"
+                                                FontSize="15"
+                                                IsEnabled="{Binding Path=IsChecked, ElementName=MaterialDesignFilledTextBoxEnabledComboBox}"
+                                                Style="{StaticResource MaterialDesignFilledTextBox}"
+                                                Text="5"
+                                                TextWrapping="Wrap" />
+                                            <TextBox
+                                                Name="OrderRetryDelayBox"
+                                                MaxWidth="400"
+                                                Margin="0,0,10,0"
+                                                VerticalAlignment="Top"
+                                                materialDesign:HintAssist.Hint="订单重试间隔 (秒):"
+                                                AcceptsReturn="True"
+                                                FontSize="15"
+                                                IsEnabled="{Binding Path=IsChecked, ElementName=MaterialDesignFilledTextBoxEnabledComboBox}"
+                                                Style="{StaticResource MaterialDesignFilledTextBox}"
+                                                Text="1.0"
+                                                TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </WrapPanel>
+                                </StackPanel>
+                            </GroupBox>
+
+                            <!--  路径设置  -->
+                            <GroupBox Margin="0,0,0,10" Header="路径设置">
+                                <StackPanel Margin="0">
+                                    <StackPanel
+                                        Margin="0,0,0,10"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal">
+                                        <TextBlock Margin="0,1,0,0" Text="基础网址：" />
+                                        <TextBox
+                                            x:Name="BaseUrlBox"
+                                            MinWidth="700"
+                                            Margin="0"
+                                            Padding="0"
+                                            materialDesign:TransitionAssist.DisableTransitions="True"
+                                            Text="" />
+                                    </StackPanel>
+                                    <StackPanel
+                                        Margin="0,0,0,10"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal">
+                                        <TextBlock Margin="0,1,0,0" Text="Excel保存路径：" />
+                                        <TextBox
+                                            x:Name="ExcelDirBox"
+                                            MinWidth="700"
+                                            Margin="0"
+                                            Padding="0"
+                                            materialDesign:TransitionAssist.DisableTransitions="True"
+                                            Text="" />
+                                    </StackPanel>
+                                    <StackPanel
+                                        Margin="0,0,0,10"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal">
+                                        <TextBlock Margin="0,1,0,0" Text="Tesseract 路径：" />
+                                        <TextBox
+                                            Name="TesseractPathBox"
+                                            MinWidth="700"
+                                            Margin="0"
+                                            Padding="0"
+                                            Text="C:\Program Files\Tesseract-OCR\tesseract.exe" />
+                                    </StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel
+                                            Grid.Column="0"
+                                            Margin="0,0,0,0"
+                                            VerticalAlignment="Center"
+                                            Orientation="Horizontal">
+                                            <TextBlock Margin="0,1,0,0" Text="Excel 文件前缀：" />
+                                            <TextBox
+                                                x:Name="ExcelPrefixBox"
+                                                MinWidth="200"
+                                                Margin="0"
+                                                Padding="0"
+                                                materialDesign:TransitionAssist.DisableTransitions="True"
+                                                Text="用车复核记录" />
+                                        </StackPanel>
+                                        <StackPanel
+                                            Grid.Column="1"
+                                            Margin="0,0,0,0"
+                                            VerticalAlignment="Center"
+                                            Orientation="Horizontal">
+                                            <TextBlock Margin="0,1,0,0" Text="日志文件名：" />
+                                            <TextBox
+                                                x:Name="LogFileBox"
+                                                MinWidth="200"
+                                                Margin="0"
+                                                Padding="0"
+                                                materialDesign:TransitionAssist.DisableTransitions="True"
+                                                Text="program.log" />
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </GroupBox>
+
+                            <!--  OCR及日志设置  -->
+                            <GroupBox Margin="0,0,0,10" Header="其他">
+                                <StackPanel Margin="0">
+                                    <WrapPanel>
+                                        <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                            <ComboBox
+                                                Name="LogLevelBox"
+                                                Width="200"
+                                                MaxWidth="400"
+                                                Margin="0,0,10,5"
+                                                materialDesign:HintAssist.HelperText=" "
+                                                materialDesign:HintAssist.Hint="日志等级"
+                                                SelectedIndex="0"
+                                                Style="{StaticResource MaterialDesignFilledComboBox}">
+                                                <ComboBoxItem Content="DEBUG" />
+                                                <ComboBoxItem Content="INFO" />
+                                                <ComboBoxItem Content="WARNING" />
+                                                <ComboBoxItem Content="ERROR" />
+                                                <ComboBoxItem Content="CRITICAL" />
+                                            </ComboBox>
+
+                                            <ComboBox
+                                                Name="OcrLangBox"
+                                                Width="200"
+                                                MaxWidth="400"
+                                                Margin="0,0,10,5"
+                                                materialDesign:HintAssist.HelperText=" "
+                                                materialDesign:HintAssist.Hint="OCR语言"
+                                                SelectedIndex="0"
+                                                Style="{StaticResource MaterialDesignFilledComboBox}">
+                                                <ComboBoxItem Content="eng" />
+                                            </ComboBox>
+
+                                            <!--  导出选项  -->
+                                            <CheckBox
+                                                Name="ExportJsonBox"
+                                                Margin="0,0,10,5"
+                                                Content="导出 JSON"
+                                                IsChecked="True" />
+                                            <CheckBox
+                                                Name="ExcelMonthlyBox"
+                                                Margin="0,0,10,5"
+                                                Content="按月导出 Excel"
+                                                IsChecked="True" />
+                                            <CheckBox
+                                                Name="DebugModeBox"
+                                                Margin="0,0,10,5"
+                                                Content="调试模式"
+                                                IsChecked="False" />
+                                        </StackPanel>
+                                    </WrapPanel>
+                                </StackPanel>
+                            </GroupBox>
+
+                            <Button
+                                Height="40"
+                                Click="ResetSettings_Click"
+                                IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
+                                ToolTip="起飞">
+                                <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                    <materialDesign:PackIcon
+                                        Width="20"
+                                        Height="20"
+                                        Margin="0,0,5,0"
+                                        Kind="BackupRestore" />
+                                    <TextBlock VerticalAlignment="Center" Text="重置所有设置" />
+                                </StackPanel>
+                            </Button>
+
+
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+                <!--  定时运行 — TabItem  -->
+                <TabItem Header="定时运行" TabIndex="4">
+                    <ScrollViewer Padding="10" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Width="Auto" Margin="10">
+                            <!--  标题  -->
+                            <TextBlock
+                                Margin="0,0,0,15"
+                                FontSize="16"
+                                FontWeight="Bold"
+                                Text="定时任务配置" />
+
+                            <!--  时间设置区域  -->
+                            <GroupBox Margin="0,0,0,15" Header="时间设置">
+                                <StackPanel Orientation="Horizontal">
+                                    <ComboBox
+                                        x:Name="FrequencyComboBox"
+                                        Width="200"
+                                        Margin="0,0,10,0"
+                                        materialDesign:HintAssist.Hint="执行周期"
+                                        SelectedIndex="0"
+                                        Style="{StaticResource MaterialDesignOutlinedComboBox}">
+                                        <ComboBoxItem Content="每小时" Tag="1" />
+                                        <ComboBoxItem Content="每天" Tag="24" />
+                                        <ComboBoxItem Content="每2天" Tag="48" />
+                                    </ComboBox>
+                                    <materialDesign:TimePicker
+                                        x:Name="TaskTimePicker"
+                                        Width="140"
+                                        materialDesign:HintAssist.Hint="起始时间"
+                                        Is24Hours="True"
+                                        SelectedTime="23:00"
+                                        Style="{StaticResource MaterialDesignOutlinedTimePicker}" />
+                                </StackPanel>
+                            </GroupBox>
+
+                            <!--  任务状态  -->
+                            <GroupBox Margin="0,0,0,15" Header="任务状态">
+                                <StackPanel>
+                                    <TextBlock
+                                        x:Name="TaskStatusLabel"
+                                        Foreground="Gray"
+                                        Text="未启用" />
+                                    <StackPanel Margin="0,10,0,0" Orientation="Vertical">
+                                        <TextBlock FontWeight="SemiBold" Text="上次执行时间:" />
+                                        <TextBlock
+                                            x:Name="LastRunTimeLabel"
+                                            Margin="10,0,0,0"
+                                            Text="--" />
+                                        <TextBlock FontWeight="SemiBold" Text="下次执行时间:" />
+                                        <TextBlock
+                                            x:Name="NextRunTimeLabel"
+                                            Margin="10,0,0,0"
+                                            Text="--" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </GroupBox>
+
+                            <!--  操作按钮  -->
+                            <StackPanel Margin="0,20,0,10">
+                                <!--  启用按钮  -->
+                                <Button
+                                    x:Name="ToggleTaskButton"
+                                    Height="40"
+                                    Margin="0,0,0,10"
+                                    Click="ToggleTaskButton_Click"
+                                    IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
+                                    Style="{DynamicResource MaterialDesignRaisedButton}"
+                                    ToolTip=""
+                                    Visibility="Visible">
+                                    <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                        <materialDesign:PackIcon
+                                            Width="20"
+                                            Height="20"
+                                            Margin="0,0,5,0"
+                                            Kind="TimerPlay" />
+                                        <TextBlock VerticalAlignment="Center" Text="启用定时任务" />
+                                    </StackPanel>
+                                </Button>
+                                <!--  运行中按钮  -->
+                                <Button
+                                    x:Name="RunningToggleTaskButton"
+                                    Height="40"
+                                    Margin="0,0,0,10"
+                                    materialDesign:ButtonProgressAssist.IsIndeterminate="True"
+                                    materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
+                                    Click="ToggleTaskButton_Click"
+                                    Style="{DynamicResource MaterialDesignRaisedButton}"
+                                    Visibility="Collapsed">
+                                    <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                        <materialDesign:PackIcon
+                                            Width="20"
+                                            Height="20"
+                                            Margin="0,0,5,0"
+                                            Kind="TimerStop" />
+                                        <TextBlock VerticalAlignment="Center" Text="定时任务已启用，点击停止" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
+
+                <TabItem Header="关于" TabIndex="5">
+                    <!--  关于内容  -->
+                    <ScrollViewer Padding="20" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="10,10,10,10">
+                            <Image
+                                Width="64"
+                                Height="64"
+                                Margin="0,0,0,20"
+                                HorizontalAlignment="Center" />
+                            <!--  Source="/Resources/icon.png"  -->
+                            <TextBlock
+                                Margin="0,0,0,10"
+                                HorizontalAlignment="Center"
+                                FontSize="18"
+                                FontWeight="Bold"
+                                Text="用车复核配置器" />
+                            <TextBlock
+                                Margin="0,0,0,5"
+                                HorizontalAlignment="Center"
+                                Text="版本: 1.0.0" />
+                            <TextBlock
+                                Margin="0,0,0,20"
+                                HorizontalAlignment="Center"
+                                Text="构建日期: 2050-11-15" />
+
+                            <TextBlock
+                                Margin="0,15,0,5"
+                                FontWeight="Bold"
+                                Text="功能说明:" />
+                            <TextBlock
+                                Margin="10,0,0,5"
+                                Text="1. 自动登录用车复核系统"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                Margin="10,0,0,5"
+                                Text="2. 定时执行复核任务"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                Margin="10,0,0,5"
+                                Text="3. 支持多种导出格式"
+                                TextWrapping="Wrap" />
+                            <TextBlock
+                                Margin="10,0,0,20"
+                                Text="4. 详细日志记录"
+                                TextWrapping="Wrap" />
+
+                            <TextBlock
+                                Margin="0,10,0,5"
+                                FontWeight="Bold"
+                                Text="技术支持:" />
+                            <TextBlock Margin="0,0,0,5" Text="邮箱: support@example.com" />
+                            <TextBlock Margin="0,0,0,20" Text="电话: 400-123-4567" />
+
+                            <Button
+                                Width="120"
+                                Margin="0,10"
+                                HorizontalAlignment="Center"
+                                Content="检查更新"
+                                Style="{DynamicResource MaterialDesignOutlinedButton}" />
+                        </StackPanel>
+                    </ScrollViewer>
+
+                </TabItem>
+            </TabControl>
+
+
+            <!--  日志区  -->
+            <Expander
+                x:Name="LogExpander"
+                Grid.Row="1"
+                Grid.ColumnSpan="2"
+                Margin="0,5,0,0"
+                Background="{DynamicResource MaterialDesignPaper}"
+                BorderBrush="{DynamicResource MaterialDesignDivider}"
+                BorderThickness="1"
+                Header="实时日志"
+                IsExpanded="False">
+                <DockPanel Margin="10" LastChildFill="True">
+                    <!--  日志操作按钮  -->
+                    <StackPanel
+                        Margin="0,0,0,10"
+                        HorizontalAlignment="Right"
+                        DockPanel.Dock="Top"
+                        Orientation="Horizontal">
                         <Button
-                            Width="120"
-                            Margin="0,10"
-                            HorizontalAlignment="Center"
-                            Content="检查更新"
-                            Style="{DynamicResource MaterialDesignOutlinedButton}" />
+                            Width="100"
+                            Margin="5,0"
+                            Click="ClearLogs_Click"
+                            Content="清空日志"
+                            Style="{DynamicResource MaterialDesignFlatButton}" />
+                        <Button
+                            Width="100"
+                            Margin="5,0"
+                            Click="ExportLogs_Click"
+                            Content="导出日志"
+                            Style="{DynamicResource MaterialDesignFlatButton}" />
+                        <Button
+                            Width="100"
+                            Margin="5,0"
+                            Click="ContinueButton_Click"
+                            Content="发送回车⏎"
+                            IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
+                            Style="{StaticResource MaterialDesignFlatMidBgButton}"
+                            ToolTip="MaterialDesignFlatMidButton" />
                     </StackPanel>
-                </ScrollViewer>
+                    <!--  日志内容区域  -->
+                    <RichTextBox
+                        Name="LogBox"
+                        MinHeight="180"
+                        MaxHeight="180"
+                        VerticalAlignment="Stretch"
+                        Background="{DynamicResource MaterialDesignBackground}"
+                        FontFamily="Consolas"
+                        FontSize="12"
+                        IsReadOnly="True"
+                        VerticalScrollBarVisibility="Auto">
+                        <RichTextBox.Resources>
+                            <Style TargetType="{x:Type Paragraph}">
+                                <Setter Property="Margin" Value="0" />
+                            </Style>
+                        </RichTextBox.Resources>
+                    </RichTextBox>
 
-            </TabItem>
-        </TabControl>
-
-
-        <!--  日志区  -->
-        <Expander
-            x:Name="LogExpander"
-            Grid.Row="1"
-            Grid.ColumnSpan="2"
-            Margin="0,5,0,0"
-            Background="{DynamicResource MaterialDesignPaper}"
-            BorderBrush="{DynamicResource MaterialDesignDivider}"
-            BorderThickness="1"
-            Header="实时日志"
-            IsExpanded="False">
-            <DockPanel Margin="10" LastChildFill="True">
-                <!--  日志操作按钮  -->
-                <StackPanel
-                    Margin="0,0,0,10"
-                    HorizontalAlignment="Right"
-                    DockPanel.Dock="Top"
-                    Orientation="Horizontal">
-                    <Button
-                        Width="100"
-                        Margin="5,0"
-                        Click="ClearLogs_Click"
-                        Content="清空日志"
-                        Style="{DynamicResource MaterialDesignFlatButton}" />
-                    <Button
-                        Width="100"
-                        Margin="5,0"
-                        Click="ExportLogs_Click"
-                        Content="导出日志"
-                        Style="{DynamicResource MaterialDesignFlatButton}" />
-                </StackPanel>
-                <!--  日志内容区域  -->
-                <TextBox
-                    Name="LogBox"
-                    MinHeight="180"
-                    MaxHeight="230"
-                    VerticalAlignment="Stretch"
-                    AcceptsReturn="True"
-                    Background="{DynamicResource MaterialDesignBackground}"
-                    FontFamily="Consolas"
-                    FontSize="12"
-                    IsReadOnly="True"
-                    TextWrapping="Wrap"
-                    VerticalScrollBarVisibility="Auto" />
-            </DockPanel>
-        </Expander>
-    </Grid>
-
+                </DockPanel>
+            </Expander>
+        </Grid>
+    </materialDesign:DialogHost>
 </Window>
