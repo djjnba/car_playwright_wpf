@@ -14,9 +14,20 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="Resources\icon.ico" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<!-- 核心包（必须升级到兼容版本） -->
+		<PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="2.0.1" />
 		<PackageReference Include="MaterialDesignThemes" Version="5.2.1" />
 		<PackageReference Include="MaterialDesignThemes.MahApps" Version="5.2.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Resource Include="Resources\icon.ico">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </Resource>
 	</ItemGroup>
 
 

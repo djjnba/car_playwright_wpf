@@ -1,5 +1,8 @@
-﻿using MaterialDesignThemes.Wpf;
+﻿using Hardcodet.Wpf.TaskbarNotification;
 using MaterialDesignColors;
+using MaterialDesignThemes.Wpf;
+using Microsoft.Win32;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -8,7 +11,6 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Microsoft.Win32;
 
 namespace car_playwright_wpf
 {
@@ -16,6 +18,10 @@ namespace car_playwright_wpf
 
     public partial class MainWindow : Window
     {
+        // 单例模式，确保只有一个 MainWindow 实例
+        private static MainWindow _instance;
+        public static MainWindow Instance => _instance ??= new MainWindow();
+
         private readonly PaletteHelper _paletteHelper = new();
 
         // 添加类成员变量
@@ -25,7 +31,8 @@ namespace car_playwright_wpf
         public MainWindow()
         {
             InitializeComponent();
-
+            // 设置单例实例
+            Closed += (s, e) => _instance = null;
             // 获取程序集版本号
             string version = Assembly.GetExecutingAssembly()
                                      .GetName()
@@ -35,6 +42,38 @@ namespace car_playwright_wpf
 
             // 启动时检查脚本路径
             this.Loaded += MainWindow_Loaded;
+        }
+
+        // 添加定时任务开关方法（供托盘菜单调用）
+        public void ToggleScheduledTask()
+        {
+            // 这里调用你现有的定时任务切换逻辑
+            ToggleTaskButton_Click(null, null);
+        }
+
+        protected override void OnStateChanged(EventArgs e)
+        {
+            // 最小化时隐藏到托盘
+            if (WindowState == WindowState.Minimized)
+            {
+                //Hide();
+            }
+            //base.OnStateChanged(e);
+        }
+
+        // 重写关闭按钮行为（直接最小化）
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            // 仅当用户点击红 X 时隐藏到托盘
+            if (this.WindowState != WindowState.Minimized)
+            {
+                e.Cancel = true;
+                this.WindowState = WindowState.Minimized;
+                this.Hide();
+
+                var tray = (TaskbarIcon)Application.Current.FindResource("TrayIcon");
+                tray?.ShowBalloonTip("提示", "已最小化到托盘", BalloonIcon.Info);
+            }
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -135,6 +174,7 @@ namespace car_playwright_wpf
             RunningButton.Visibility = Visibility.Visible;
 
             StatusLabel.Text = "🕐 正在运行，请稍候...";
+            LogBox.AppendText("🕐 正在运行，请稍候...\n");
             ProgressBarControl.Value = 0;
             //LogBox.Clear();
 
@@ -342,6 +382,7 @@ namespace car_playwright_wpf
             }
 
             StatusLabel.Text = "✅ Python配置已保存";
+            AppendLog("配置已保存到用户目录");
         }
 
 
