@@ -42,9 +42,15 @@
     <!--  主网格布局，分为内容区和底部日志区  -->
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="500" />
+<<<<<<<<< Temporary merge branch 1
+            <RowDefinition Height="*" />    
+            <!--  主内容区自适应  -->
+            <RowDefinition Height="Auto" /> 
+=========
+            <RowDefinition Height="600" />
             <!--  主内容区自适应  -->
             <RowDefinition Height="Auto" />
+>>>>>>>>> Temporary merge branch 2
             <!--  日志区展开时占用实际高度  -->
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
@@ -80,17 +86,17 @@
                             Margin="0,0,0,10"
                             Text="未开始" />
 
-                        <!--  进度条  -->
-                        <TextBlock
-                            Margin="0,10,0,5"
-                            FontWeight="Bold"
-                            Text="执行进度：" />
-                        <ProgressBar
-                            Name="ProgressBarControl"
-                            Height="20"
-                            Margin="0,0,0,10"
-                            Maximum="100"
-                            Minimum="0" />
+                                <!--  进度条  -->
+                                <TextBlock
+                                    Margin="0,10,0,5"
+                                    FontWeight="Bold"
+                                    Text="执行进度：" />
+                                <ProgressBar
+                                    Name="ProgressBarControl"
+                                    Height="20"
+                                    Margin="0,0,0,10"
+                                    Maximum="100"
+                                    Minimum="0" />
 
                         <!--  操作按钮  -->
                         <!--  启动按钮  -->
@@ -164,24 +170,27 @@
 
 
                         <!--  常用设置  -->
-                        <GroupBox Margin="0,0,0,15" Header="常用选项">
-                            <StackPanel>
-                                <WrapPanel Margin="5">
-                                    <!--  无头模式  -->
-                                    <StackPanel
-                                        Margin="5"
-                                        VerticalAlignment="Center"
-                                        Orientation="Horizontal">
-                                        <TextBlock
-                                            Margin="0,0,4,0"
-                                            VerticalAlignment="Center"
-                                            Text="无头模式" />
-                                        <ToggleButton
-                                            x:Name="HeadlessToggle"
-                                            Width="40"
-                                            Height="20"
-                                            Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
-                                    </StackPanel>
+                        <TextBlock
+                            Margin="0,0,0,10"
+                            FontWeight="Bold"
+                            Text="常用选项" />
+
+                        <WrapPanel Margin="5">
+                            <!--  无头模式  -->
+                            <StackPanel
+                                Margin="5"
+                                VerticalAlignment="Center"
+                                Orientation="Horizontal">
+                                <TextBlock
+                                    Margin="0,0,4,0"
+                                    VerticalAlignment="Center"
+                                    Text="无头模式" />
+                                <ToggleButton
+                                    x:Name="HeadlessToggle"
+                                    Width="40"
+                                    Height="20"
+                                    Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
+                            </StackPanel>
 
                                     <!--  自动提交  -->
                                     <StackPanel
@@ -234,35 +243,38 @@
                                             Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
                                     </StackPanel>
 
-                                    <!--  仅登录  -->
-                                    <StackPanel
-                                        Margin="5"
-                                        VerticalAlignment="Center"
-                                        Orientation="Horizontal">
-                                        <TextBlock
-                                            Margin="10,0,4,0"
-                                            VerticalAlignment="Center"
-                                            Text="仅登录" />
-                                        <ToggleButton
-                                            x:Name="OnlyLoginToggle"
-                                            Width="40"
-                                            Height="20"
-                                            Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
-                                    </StackPanel>
-                                </WrapPanel>
+                            <!--  仅登录  -->
+                            <StackPanel
+                                Margin="5"
+                                VerticalAlignment="Center"
+                                Orientation="Horizontal">
+                                <TextBlock
+                                    Margin="10,0,4,0"
+                                    VerticalAlignment="Center"
+                                    Text="仅登录" />
+                                <ToggleButton
+                                    x:Name="OnlyLoginToggle"
+                                    Width="40"
+                                    Height="20"
+                                    Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
                             </StackPanel>
-                        </GroupBox>
-                        <!--  路径设置  -->
-                        <GroupBox Margin="0,0,0,15" Header="脚本、配置文件路径">
-                            <StackPanel>
 
-                                <TextBox
-                                    x:Name="PythonCodeBox"
-                                    Grid.Column="0"
-                                    Margin="0,0,0,10"
-                                    IsReadOnly="True"
-                                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                    ToolTip="脚本路径" />
+
+
+                        </WrapPanel>
+
+                        <!--  路径设置  -->
+                        <TextBlock
+                            Margin="0,0,0,10"
+                            FontWeight="Bold"
+                            Text="脚本、配置文件路径" />
+                        <TextBox
+                            x:Name="PythonCodeBox"
+                            Grid.Column="0"
+                            Margin="0,0,5,10"
+                            IsReadOnly="True"
+                            Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                            ToolTip="脚本路径" />
 
                                 <Button
                                     Grid.Column="1"
@@ -270,14 +282,13 @@
                                     Content="浏览…"
                                     Style="{StaticResource MaterialDesignRaisedButton}" />
 
-                                <!--  保存配置  -->
-                                <Button
-                                    Margin="0,10,0,15"
-                                    Click="SaveConfig_Click"
-                                    Content="保存为 config.json"
-                                    Style="{DynamicResource MaterialDesignOutlinedButton}" />
-                            </StackPanel>
-                        </GroupBox>
+                        <!--  保存配置  -->
+                        <Button
+                            Margin="0,10,0,15"
+                            Click="SaveConfig_Click"
+                            Content="保存为 config.json"
+                            Style="{DynamicResource MaterialDesignOutlinedButton}" />
+
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
@@ -681,33 +692,33 @@
                             HorizontalAlignment="Center"
                             Text="构建日期: 2050-11-15" />
 
-                        <TextBlock
-                            Margin="0,15,0,5"
-                            FontWeight="Bold"
-                            Text="功能说明:" />
-                        <TextBlock
-                            Margin="10,0,0,5"
-                            Text="1. 自动登录用车复核系统"
-                            TextWrapping="Wrap" />
-                        <TextBlock
-                            Margin="10,0,0,5"
-                            Text="2. 定时执行复核任务"
-                            TextWrapping="Wrap" />
-                        <TextBlock
-                            Margin="10,0,0,5"
-                            Text="3. 支持多种导出格式"
-                            TextWrapping="Wrap" />
-                        <TextBlock
-                            Margin="10,0,0,20"
-                            Text="4. 详细日志记录"
-                            TextWrapping="Wrap" />
+                                <TextBlock
+                                    Margin="0,15,0,5"
+                                    FontWeight="Bold"
+                                    Text="功能说明:" />
+                                <TextBlock
+                                    Margin="10,0,0,5"
+                                    Text="1. 自动登录用车复核系统"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Margin="10,0,0,5"
+                                    Text="2. 定时执行复核任务"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Margin="10,0,0,5"
+                                    Text="3. 支持多种导出格式"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Margin="10,0,0,20"
+                                    Text="4. 详细日志记录"
+                                    TextWrapping="Wrap" />
 
-                        <TextBlock
-                            Margin="0,10,0,5"
-                            FontWeight="Bold"
-                            Text="技术支持:" />
-                        <TextBlock Margin="0,0,0,5" Text="邮箱: support@example.com" />
-                        <TextBlock Margin="0,0,0,20" Text="电话: 400-123-4567" />
+                                <TextBlock
+                                    Margin="0,10,0,5"
+                                    FontWeight="Bold"
+                                    Text="技术支持:" />
+                                <TextBlock Margin="0,0,0,5" Text="邮箱: support@example.com" />
+                                <TextBlock Margin="0,0,0,20" Text="电话: 400-123-4567" />
 
                         <Button
                             Width="120"
@@ -720,8 +731,520 @@
 
             </TabItem>
         </TabControl>
+>>>>>>>>> Temporary merge branch 2
 
 
+<<<<<<<<< Temporary merge branch 1
+        <!--  主内容区（可滚动）  -->
+        <ScrollViewer
+            Grid.Row="0"
+            Grid.ColumnSpan="2"
+            VerticalScrollBarVisibility="Auto">
+            <StackPanel Background="{DynamicResource MaterialDesignPaper}">
+                <!--  你的主内容（如状态区、设置区等）  -->
+                <!--  左侧标签导航  -->
+                <TabControl
+                    Grid.Row="0"
+                    Grid.RowSpan="2"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="2"
+                    Margin="0,0,0,55"
+                    HorizontalAlignment="Stretch"
+                    materialDesign:ColorZoneAssist.Mode="PrimaryMid"
+                    Background="{DynamicResource MaterialDesignPaper}"
+                    BorderBrush="{DynamicResource MaterialDesignDivider}"
+                    BorderThickness="1"
+                    TabStripPlacement="Left">
+
+                    <!--  状态标签  -->
+                    <TabItem Header="状态">
+                        <Border Padding="10">
+                            <StackPanel Background="{DynamicResource MaterialDesignPaper}">
+                                <!--  状态信息  -->
+                                <TextBlock
+                                    Margin="0,0,0,5"
+                                    FontWeight="Bold"
+                                    Text="当前状态：" />
+                                <TextBlock
+                                    Name="StatusLabel"
+                                    Margin="0,0,0,10"
+                                    Text="未开始" />
+
+                                <!--  进度条  -->
+                                <TextBlock
+                                    Margin="0,10,0,5"
+                                    FontWeight="Bold"
+                                    Text="执行进度：" />
+                                <ProgressBar
+                                    Name="ProgressBarControl"
+                                    Height="20"
+                                    Margin="0,0,0,10"
+                                    Maximum="100"
+                                    Minimum="0" />
+
+                                <!--  操作按钮  -->
+                                <Button
+                                    x:Name="RunButton"
+                                    Height="40"
+                                    Margin="0,10"
+                                    Click="RunButton_Click"
+                                    Content="🚗 启动复核"
+                                    Style="{DynamicResource MaterialDesignRaisedButton}" />
+
+                                <Button
+                                    x:Name="StopButton"
+                                    Height="40"
+                                    Margin="0,5"
+                                    Click="StopButton_Click"
+                                    Content="停止运行"
+                                    IsEnabled="False"
+                                    Style="{DynamicResource MaterialDesignOutlinedButton}" />
+
+                                <ToggleButton
+                                    x:Name="DarkModeToggle"
+                                    Width="120"
+                                    Height="32"
+                                    Checked="DarkModeToggle_Checked"
+                                    Content="🌙深色主题"
+                                    Style="{DynamicResource MaterialDesignSwitchToggleButton}"
+                                    Unchecked="DarkModeToggle_Unchecked" />
+                            </StackPanel>
+                        </Border>
+                    </TabItem>
+
+                    <!--  设置标签  -->
+                    <TabItem Header="设置">
+                        <ScrollViewer Padding="10" VerticalScrollBarVisibility="Auto">
+                            <StackPanel Margin="10,10,10,10">
+                                <!--  用户信息  -->
+                                <TextBlock
+                                    Margin="0,0,0,10"
+                                    FontWeight="Bold"
+                                    Text="账户设置" />
+                                <TextBlock Text="用户名：" />
+                                <TextBox
+                                    Name="UsernameBox"
+                                    Margin="0,0,0,10"
+                                    Text="" />
+                                <TextBlock Text="密码：" />
+                                <PasswordBox
+                                    Name="PasswordBox"
+                                    Margin="0,0,0,15"
+                                    Password="" />
+
+                                <!--  常用设置  -->
+                                <TextBlock
+                                    Margin="0,0,0,10"
+                                    FontWeight="Bold"
+                                    Text="常用选项" />
+
+                                <WrapPanel Margin="5">
+                                    <!--  无头模式  -->
+                                    <StackPanel
+                                        Margin="5"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal">
+                                        <TextBlock
+                                            Margin="0,0,4,0"
+                                            VerticalAlignment="Center"
+                                            Text="无头模式" />
+                                        <ToggleButton
+                                            x:Name="HeadlessToggle"
+                                            Width="40"
+                                            Height="20"
+                                            Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
+                                    </StackPanel>
+
+                                    <!--  自动提交  -->
+                                    <StackPanel
+                                        Margin="5"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal">
+                                        <TextBlock
+                                            Margin="10,0,4,0"
+                                            VerticalAlignment="Center"
+                                            Text="自动提交" />
+                                        <ToggleButton
+                                            x:Name="AutoSubmitToggle"
+                                            Width="40"
+                                            Height="20"
+                                            IsChecked="True"
+                                            Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
+                                    </StackPanel>
+
+                                    <!--  导出 Excel  -->
+                                    <StackPanel
+                                        Margin="5"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal">
+                                        <TextBlock
+                                            Margin="10,0,4,0"
+                                            VerticalAlignment="Center"
+                                            Text="导出 Excel" />
+                                        <ToggleButton
+                                            x:Name="ExportExcelToggle"
+                                            Width="40"
+                                            Height="20"
+                                            IsChecked="True"
+                                            Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
+                                    </StackPanel>
+
+                                    <!--  自动退出  -->
+                                    <StackPanel
+                                        Margin="5"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal">
+                                        <TextBlock
+                                            Margin="10,0,4,0"
+                                            VerticalAlignment="Center"
+                                            Text="自动退出" />
+                                        <ToggleButton
+                                            x:Name="AutoExitToggle"
+                                            Width="40"
+                                            Height="20"
+                                            IsChecked="True"
+                                            Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
+                                    </StackPanel>
+
+                                    <!--  仅登录  -->
+                                    <StackPanel
+                                        Margin="5"
+                                        VerticalAlignment="Center"
+                                        Orientation="Horizontal">
+                                        <TextBlock
+                                            Margin="10,0,4,0"
+                                            VerticalAlignment="Center"
+                                            Text="仅登录" />
+                                        <ToggleButton
+                                            x:Name="OnlyLoginToggle"
+                                            Width="40"
+                                            Height="20"
+                                            Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
+                                    </StackPanel>
+
+
+
+                                </WrapPanel>
+
+                                <!--  路径设置  -->
+                                <TextBlock
+                                    Margin="0,0,0,10"
+                                    FontWeight="Bold"
+                                    Text="脚本、配置文件路径" />
+                                <TextBox
+                                    x:Name="PythonCodeBox"
+                                    Grid.Column="0"
+                                    Margin="0,0,5,10"
+                                    IsReadOnly="True"
+                                    Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                    ToolTip="脚本路径" />
+
+                                <Button
+                                    Grid.Column="1"
+                                    Click="BrowseButton_Click"
+                                    Content="浏览…"
+                                    Style="{StaticResource MaterialDesignRaisedButton}" />
+
+                                <!--  保存配置  -->
+                                <Button
+                                    Margin="0,10,0,15"
+                                    Click="SaveConfig_Click"
+                                    Content="保存为 config.json"
+                                    Style="{DynamicResource MaterialDesignOutlinedButton}" />
+
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+
+                    <!--  高级标签  -->
+                    <TabItem Header="高级">
+                        <ScrollViewer Padding="10" VerticalScrollBarVisibility="Auto">
+                            <StackPanel Margin="10,10,10,10">
+                                <!--  OCR及日志设置  -->
+                                <TextBlock
+                                    Margin="0,0,0,10"
+                                    FontWeight="Bold"
+                                    Text="OCR设置" />
+                                <TextBlock Text="OCR语言" />
+                                <TextBox
+                                    Name="OcrLangBox"
+                                    Margin="0,0,0,10"
+                                    Text="eng" />
+                                <TextBlock Text="日志等级：" />
+                                <ComboBox
+                                    Name="LogLevelBox"
+                                    Margin="0,0,0,15"
+                                    SelectedIndex="0">
+                                    <ComboBoxItem Content="DEBUG" />
+                                    <ComboBoxItem Content="INFO" />
+                                    <ComboBoxItem Content="WARNING" />
+                                    <ComboBoxItem Content="ERROR" />
+                                    <ComboBoxItem Content="CRITICAL" />
+                                </ComboBox>
+
+                                <!--  导出选项  -->
+                                <TextBlock
+                                    Margin="0,0,0,10"
+                                    FontWeight="Bold"
+                                    Text="导出设置" />
+                                <CheckBox
+                                    Name="ExportJsonBox"
+                                    Margin="0,5"
+                                    Content="导出 JSON"
+                                    IsChecked="True" />
+                                <CheckBox
+                                    Name="ExcelMonthlyBox"
+                                    Margin="0,5,0,15"
+                                    Content="按月导出 Excel"
+                                    IsChecked="True" />
+
+                                <!--  调试选项  -->
+                                <TextBlock
+                                    Margin="0,0,0,10"
+                                    FontWeight="Bold"
+                                    Text="调试设置" />
+                                <CheckBox
+                                    Name="DebugModeBox"
+                                    Margin="0,5,0,15"
+                                    Content="调试模式"
+                                    IsChecked="False" />
+
+                                <!--  超时设置  -->
+                                <TextBlock
+                                    Margin="0,0,0,10"
+                                    FontWeight="Bold"
+                                    Text="超时设置" />
+                                <TextBlock Text="操作间隔 (ms):" />
+                                <TextBox
+                                    Name="SlowMoBox"
+                                    Margin="0,0,0,5"
+                                    Text="100" />
+                                <TextBlock Text="导航超时 (ms):" />
+                                <TextBox
+                                    Name="NavigationTimeoutBox"
+                                    Margin="0,0,0,5"
+                                    Text="20000" />
+                                <TextBlock Text="默认超时 (ms):" />
+                                <TextBox
+                                    Name="DefaultTimeoutBox"
+                                    Margin="0,0,0,5"
+                                    Text="6000" />
+                                <TextBlock Text="异常输入等待超时 (秒):" />
+                                <TextBox
+                                    Name="InputTimeoutBox"
+                                    Margin="0,0,0,15"
+                                    Text="30" />
+
+                                <!--  重试设置  -->
+                                <TextBlock
+                                    Margin="0,0,0,10"
+                                    FontWeight="Bold"
+                                    Text="重试设置" />
+                                <TextBlock Text="重试次数:" />
+                                <TextBox
+                                    Name="RetryTimesBox"
+                                    Margin="0,0,0,5"
+                                    Text="3" />
+                                <TextBlock Text="点击后延迟 (秒):" />
+                                <TextBox
+                                    Name="DelayAfterClickBox"
+                                    Margin="0,0,0,5"
+                                    Text="1.0" />
+                                <TextBlock Text="主程序异常重试次数:" />
+                                <TextBox
+                                    Name="MaxRetryOnErrorBox"
+                                    Margin="0,0,0,5"
+                                    Text="1" />
+
+                                <!--  订单设置  -->
+                                <TextBlock
+                                    Margin="0,10,0,10"
+                                    FontWeight="Bold"
+                                    Text="订单处理" />
+                                <TextBlock Text="订单时间差阈值 (小时):" />
+                                <TextBox
+                                    Name="OrderTimeThresholdBox"
+                                    Margin="0,0,0,5"
+                                    Text="4" />
+                                <TextBlock Text="订单最大重试次数:" />
+                                <TextBox
+                                    Name="OrderMaxRetryBox"
+                                    Margin="0,0,0,5"
+                                    Text="5" />
+                                <TextBlock Text="订单重试间隔 (秒):" />
+                                <TextBox
+                                    Name="OrderRetryDelayBox"
+                                    Margin="0,0,0,5"
+                                    Text="1.0" />
+
+                                <!--  路径设置  -->
+                                <TextBlock
+                                    Margin="0,10,0,10"
+                                    FontWeight="Bold"
+                                    Text="路径设置" />
+                                <TextBlock Text="基础网址：" />
+                                <TextBox
+                                    Name="BaseUrlBox"
+                                    Margin="0,0,0,5"
+                                    Text="" />
+                                <TextBlock Text="Tesseract 路径：" />
+                                <TextBox
+                                    Name="TesseractPathBox"
+                                    Margin="0,0,0,5"
+                                    Text="C:\Program Files\Tesseract-OCR\tesseract.exe" />
+                                <TextBlock Text="Excel 文件前缀：" />
+                                <TextBox
+                                    Name="ExcelPrefixBox"
+                                    Margin="0,0,0,5"
+                                    Text="用车复核记录" />
+                                <TextBlock Text="日志文件名：" />
+                                <TextBox
+                                    Name="LogFileBox"
+                                    Margin="0,0,0,5"
+                                    Text="program.log" />
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+
+                    <!--  定时运行标签  -->
+                    <TabItem Header="定时运行">
+                        <ScrollViewer Padding="10" VerticalScrollBarVisibility="Auto">
+                            <StackPanel Margin="10,10,10,10">
+                                <TextBlock
+                                    Margin="0,0,0,15"
+                                    FontWeight="Bold"
+                                    Text="定时任务配置" />
+
+                                <!--  定时设置  -->
+                                <TextBlock Margin="0,0,0,5" Text="执行时间" />
+                                <StackPanel Margin="0,0,0,15" Orientation="Horizontal">
+                                    <ComboBox
+                                        Width="80"
+                                        Margin="0,0,5,0"
+                                        SelectedIndex="0">
+                                        <ComboBoxItem Content="每天" />
+                                        <ComboBoxItem Content="每周" />
+                                        <ComboBoxItem Content="每月" />
+                                    </ComboBox>
+                                    <TextBox
+                                        Width="60"
+                                        Margin="5,0"
+                                        Text="08:00" />
+                                </StackPanel>
+
+                                <!--  重复设置  -->
+                                <CheckBox
+                                    Name="RepeatTaskBox"
+                                    Margin="0,0,0,5"
+                                    Content="重复执行"
+                                    IsChecked="True" />
+                                <TextBlock Margin="0,10,0,5" Text="执行间隔 (小时):" />
+                                <TextBox
+                                    Name="IntervalBox"
+                                    Margin="0,0,0,15"
+                                    Text="24" />
+
+                                <!--  任务开关  -->
+                                <Button
+                                    Height="40"
+                                    Margin="0,10"
+                                    Content="启用定时任务"
+                                    Style="{DynamicResource MaterialDesignRaisedButton}" />
+
+                                <Button
+                                    Height="35"
+                                    Margin="0,5"
+                                    Content="立即执行一次"
+                                    Style="{DynamicResource MaterialDesignOutlinedButton}" />
+
+                                <!--  任务状态  -->
+                                <TextBlock
+                                    Margin="0,15,0,5"
+                                    FontWeight="Bold"
+                                    Text="任务状态" />
+                                <TextBlock
+                                    Name="TaskStatusLabel"
+                                    Margin="0,0,0,5"
+                                    Text="未启用" />
+                                <TextBlock Margin="0,10,0,5" Text="下次执行时间:" />
+                                <TextBlock
+                                    Name="NextRunTimeLabel"
+                                    Margin="0,0,0,15"
+                                    Text="--" />
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+
+                    <!--  关于标签  -->
+                    <TabItem Header="关于">
+                        <ScrollViewer Padding="20" VerticalScrollBarVisibility="Auto">
+                            <StackPanel Margin="10,10,10,10">
+                                <Image
+                                    Width="64"
+                                    Height="64"
+                                    Margin="0,0,0,20"
+                                    HorizontalAlignment="Center" />
+                                <!--  Source="/Resources/icon.png"  -->
+                                <TextBlock
+                                    Margin="0,0,0,10"
+                                    HorizontalAlignment="Center"
+                                    FontSize="18"
+                                    FontWeight="Bold"
+                                    Text="用车复核配置器" />
+                                <TextBlock
+                                    Margin="0,0,0,5"
+                                    HorizontalAlignment="Center"
+                                    Text="版本: 1.0.0" />
+                                <TextBlock
+                                    Margin="0,0,0,20"
+                                    HorizontalAlignment="Center"
+                                    Text="构建日期: 2050-11-15" />
+
+                                <TextBlock
+                                    Margin="0,15,0,5"
+                                    FontWeight="Bold"
+                                    Text="功能说明:" />
+                                <TextBlock
+                                    Margin="10,0,0,5"
+                                    Text="1. 自动登录用车复核系统"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Margin="10,0,0,5"
+                                    Text="2. 定时执行复核任务"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Margin="10,0,0,5"
+                                    Text="3. 支持多种导出格式"
+                                    TextWrapping="Wrap" />
+                                <TextBlock
+                                    Margin="10,0,0,20"
+                                    Text="4. 详细日志记录"
+                                    TextWrapping="Wrap" />
+
+                                <TextBlock
+                                    Margin="0,10,0,5"
+                                    FontWeight="Bold"
+                                    Text="技术支持:" />
+                                <TextBlock Margin="0,0,0,5" Text="邮箱: support@example.com" />
+                                <TextBlock Margin="0,0,0,20" Text="电话: 400-123-4567" />
+
+                                <Button
+                                    Width="120"
+                                    Margin="0,10"
+                                    HorizontalAlignment="Center"
+                                    Content="检查更新"
+                                    Style="{DynamicResource MaterialDesignOutlinedButton}" />
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+                </TabControl>
+
+                <!--  ...  -->
+            </StackPanel>
+        </ScrollViewer>
+
+=========
+>>>>>>>>> Temporary merge branch 2
         <!--  日志区  -->
         <Expander
             x:Name="LogExpander"
@@ -765,7 +1288,10 @@
                 <TextBox
                     Name="LogBox"
                     MinHeight="180"
-                    MaxHeight="180"
+<<<<<<<<< Temporary merge branch 1
+=========
+                    MaxHeight="230"
+>>>>>>>>> Temporary merge branch 2
                     VerticalAlignment="Stretch"
                     AcceptsReturn="True"
                     Background="{DynamicResource MaterialDesignBackground}"
