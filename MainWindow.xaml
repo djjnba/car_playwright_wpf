@@ -114,6 +114,30 @@
                                 Content="用车复核进行中...点击停止"
                                 Style="{DynamicResource MaterialDesignRaisedButton}"
                                 Visibility="Collapsed" />
+
+                            <!--  仅登录按钮  -->
+                            <Button
+                                x:Name="SingleLoginButton"
+                                Height="40"
+                                Margin="0,10"
+                                Click="SingleLoginButton_Click"
+                                Content="仅登录"
+                                Style="{DynamicResource MaterialDesignRaisedButton}"
+                                Visibility="Visible" />
+
+                            <!--  运行中按钮（带进度/动画）  -->
+                            <Button
+                                x:Name="SingleLoggingButton"
+                                Height="40"
+                                Margin="0,10"
+                                materialDesign:ButtonProgressAssist.IsIndeterminate="True"
+                                materialDesign:ButtonProgressAssist.IsIndicatorVisible="True"
+                                Click="StopButton_Click"
+                                Content="仅登录中...点击停止"
+                                Style="{DynamicResource MaterialDesignRaisedButton}"
+                                Visibility="Collapsed" />
+
+                            <!--  停止按钮  -->
                             <Button
                                 x:Name="StopButton"
                                 Height="40"
@@ -229,20 +253,22 @@
                                                 Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
                                         </StackPanel>
 
-                                        <!--  仅登录  -->
+                                        <!--  自动延迟  -->
                                         <StackPanel
                                             Margin="5"
                                             VerticalAlignment="Center"
                                             Orientation="Horizontal">
                                             <TextBlock
-                                                Margin="10,0,4,0"
+                                                Margin="0,0,4,0"
                                                 VerticalAlignment="Center"
-                                                Text="仅登录" />
+                                                Text="自动延迟" />
                                             <ToggleButton
-                                                x:Name="OnlyLoginToggle"
+                                                x:Name="AutoDetectTimeoutToggle"
                                                 Width="40"
                                                 Height="20"
-                                                Style="{DynamicResource MaterialDesignSwitchToggleButton}" />
+                                                IsChecked="True"
+                                                Style="{DynamicResource MaterialDesignSwitchToggleButton}"
+                                                Unchecked="DarkModeToggle_Unchecked" />
                                         </StackPanel>
 
                                         <!--  深色主题  -->
@@ -263,23 +289,6 @@
                                                 Unchecked="DarkModeToggle_Unchecked" />
                                         </StackPanel>
 
-                                        <!--  深色主题  -->
-                                        <StackPanel
-                                            Margin="5"
-                                            VerticalAlignment="Center"
-                                            Orientation="Horizontal">
-                                            <TextBlock
-                                                Margin="0,0,4,0"
-                                                VerticalAlignment="Center"
-                                                Text="自动延迟" />
-                                            <ToggleButton
-                                                x:Name="AutoDetectTimeoutToggle"
-                                                Width="40"
-                                                Height="20"
-                                                IsChecked="True"
-                                                Style="{DynamicResource MaterialDesignSwitchToggleButton}"
-                                                Unchecked="DarkModeToggle_Unchecked" />
-                                        </StackPanel>
                                     </WrapPanel>
                                 </StackPanel>
                             </GroupBox>

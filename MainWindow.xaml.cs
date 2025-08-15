@@ -170,123 +170,48 @@ namespace car_playwright_wpf
             }
         }
 
-        private async void RunButton_Click(object sender, RoutedEventArgs e)
+        private async Task RunScriptAsync(bool onlyLogin)
         {
-            RunButton.Visibility = Visibility.Collapsed;
-            RunningButton.Visibility = Visibility.Visible;
-
-            StatusLabel.Text = "🕐 正在运行，请稍候...";
-            LogBox.AppendText("🕐 正在运行，请稍候...\n");
-            ProgressBarControl.Value = 0;
-            //LogBox.Clear();
-
-            processCancellationToken = new CancellationTokenSource();
-
-            string args = string.Join(" ", new string[]
-            {
-                $"--username \"{UsernameBox.Text}\"",
-                $"--password \"{PasswordBox.Password}\"",
-                $"--headless {HeadlessToggle.IsChecked?.ToString().ToLower()}",
-                $"--slow_mo {SlowMoBox.Text}",
-                $"--navigation_timeout {NavigationTimeoutBox.Text}",
-                $"--default_timeout {DefaultTimeoutBox.Text}",
-                $"--auto_timeout {AutoTimeoutBox.Text}",
-                $"--auto_detect_timeout {AutoDetectTimeoutToggle.IsChecked?.ToString().ToLower()}",
-                $"--retry_times {RetryTimesBox.Text}",
-                $"--delay_after_click {DelayAfterClickBox.Text}",
-                $"--only_login {OnlyLoginToggle.IsChecked?.ToString().ToLower()}",
-                $"--auto_submit {AutoSubmitToggle.IsChecked?.ToString().ToLower()}",
-                $"--auto_exit {AutoExitToggle.IsChecked?.ToString().ToLower()}",
-                $"--export_json {ExportJsonBox.IsChecked?.ToString().ToLower()}",
-                $"--export_excel {ExportExcelToggle.IsChecked?.ToString().ToLower()}",
-                $"--log_file \"{LogFileBox.Text}\"",
-                $"--base_url \"{BaseUrlBox.Text}\"",
-                //$"--captcha_ocr_lang {OcrLangBox.Text}",
-                $"--captcha_ocr_lang {(OcrLangBox.SelectedItem as ComboBoxItem)?.Content?.ToString()}",
-                $"--tesseract_path \"{TesseractPathBox.Text}\"",
-                $"--excel_prefix \"{ExcelPrefixBox.Text}\"",
-                $"--excel_monthly {ExcelMonthlyBox.IsChecked?.ToString().ToLower()}",
-                $"--excel_dir \"{ExcelDirBox.Text}\"",
-                $"--max_retry_on_error {MaxRetryOnErrorBox.Text}",
-                $"--input_timeout {InputTimeoutBox.Text}",
-                $"--order_time_threshold {OrderTimeThresholdBox.Text}",
-                $"--order_max_retry {OrderMaxRetryBox.Text}",
-                $"--order_retry_delay {OrderRetryDelayBox.Text}",
-                $"--debug_mode {DebugModeBox.IsChecked?.ToString().ToLower()}",
-                $"--log_level {(LogLevelBox.SelectedItem as ComboBoxItem)?.Content?.ToString()}"
-            });
-
-            // 获取脚本路径
-            string scriptPath = PythonCodeBox.Text;
-            if (string.IsNullOrWhiteSpace(scriptPath) || !File.Exists(scriptPath))
-            {
-                StatusLabel.Text = "⚠️ 未选择有效脚本";
-                LogBox.AppendText("⚠️ 请先选择有效的 Python 脚本文件。\n");
-                RunButton.Visibility = Visibility.Visible;
-                RunningButton.Visibility = Visibility.Collapsed;
-                return;
-            }
-
             try
             {
-                await Task.Run(() =>
+                // 设置运行状态
+                _buttonStates.SetRunningState(onlyLogin ?
+                    ButtonStates.OperationMode.SingleLogin :
+                    ButtonStates.OperationMode.NormalRun);
+
+                UpdateButtonVisibilities();
+
+                StatusLabel.Text = "🕐 正在运行，请稍候...";
+                LogBox.AppendText("🕐 正在运行，请稍候...\n");
+                ProgressBarControl.Value = 0;
+
+                processCancellationToken = new CancellationTokenSource();
+
+                // 使用工具类构建参数
+                string args = AppUtils.BuildCommandLineArgs(
+                    UsernameBox.Text, PasswordBox.Password,
+                    HeadlessToggle.IsChecked, SlowMoBox.Text, NavigationTimeoutBox.Text,
+                    DefaultTimeoutBox.Text, AutoTimeoutBox.Text, AutoDetectTimeoutToggle.IsChecked,
+                    RetryTimesBox.Text, DelayAfterClickBox.Text, onlyLogin,
+                    AutoSubmitToggle.IsChecked, AutoExitToggle.IsChecked, ExportJsonBox.IsChecked,
+                    ExportExcelToggle.IsChecked, LogFileBox.Text, BaseUrlBox.Text,
+                    (OcrLangBox.SelectedItem as ComboBoxItem)?.Content?.ToString(),
+                    TesseractPathBox.Text, ExcelPrefixBox.Text, ExcelMonthlyBox.IsChecked,
+                    ExcelDirBox.Text, MaxRetryOnErrorBox.Text, InputTimeoutBox.Text,
+                    OrderTimeThresholdBox.Text, OrderMaxRetryBox.Text, OrderRetryDelayBox.Text,
+                    DebugModeBox.IsChecked, (LogLevelBox.SelectedItem as ComboBoxItem)?.Content?.ToString()
+                );
+
+                // 获取脚本路径
+                string scriptPath = PythonCodeBox.Text;
+                if (string.IsNullOrWhiteSpace(scriptPath) || !File.Exists(scriptPath))
                 {
-                    var psi = new ProcessStartInfo
-                    {
-                        FileName = "python",
-                        Arguments = $"\"{scriptPath}\" {args}", // 使用选中的脚本路径
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true,
-                        StandardOutputEncoding = Encoding.UTF8,
-                        StandardErrorEncoding = Encoding.UTF8,
-                        Environment =
-                        {
-                            ["PYTHONIOENCODING"] = "utf-8",
-                            ["PYTHONUTF8"] = "1",
-                            ["LC_ALL"] = "en_US.UTF-8",
-                            ["LANG"] = "en_US.UTF-8"
-                        }
-                    };
+                    StatusLabel.Text = "⚠️ 未选择有效脚本";
+                    LogBox.AppendText("⚠️ 请先选择有效的 Python 脚本文件。\n");
+                    return;
+                }
 
-                    runningProcess = new Process { StartInfo = psi };
-
-                    runningProcess.OutputDataReceived += (s, ea) =>
-                    {
-                        if (!string.IsNullOrEmpty(ea.Data))
-                        {
-                            Dispatcher.Invoke(() =>
-                            {
-                                LogBox.AppendText(ea.Data + "\n");
-                                LogBox.ScrollToEnd();
-                            });
-                        }
-                    };
-
-                    runningProcess.ErrorDataReceived += (s, ea) =>
-                    {
-                        if (!string.IsNullOrEmpty(ea.Data))
-                        {
-                            Dispatcher.Invoke(() =>
-                            {
-                                LogBox.AppendText("❌ " + ea.Data + "\n");
-                                LogBox.ScrollToEnd();
-                            });
-                        }
-                    };
-
-                    processCancellationToken.Token.ThrowIfCancellationRequested();
-
-                    runningProcess.Start();
-                    runningProcess.BeginOutputReadLine();
-                    runningProcess.BeginErrorReadLine();
-
-                    while (!runningProcess.WaitForExit(100))
-                    {
-                        processCancellationToken.Token.ThrowIfCancellationRequested();
-                    }
-                }, processCancellationToken.Token);
+                await Task.Run(() => ExecutePythonScript(scriptPath, args), processCancellationToken.Token);
 
                 StatusLabel.Text = "✅ 运行完成";
             }
@@ -302,8 +227,8 @@ namespace car_playwright_wpf
             }
             finally
             {
-                RunButton.Visibility = Visibility.Visible;
-                RunningButton.Visibility = Visibility.Collapsed;
+                _buttonStates.Reset();
+                UpdateButtonVisibilities();
                 ProgressBarControl.Value = 100;
 
                 runningProcess?.Dispose();
@@ -313,10 +238,142 @@ namespace car_playwright_wpf
             }
         }
 
+        private void ExecutePythonScript(string scriptPath, string args)
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = "python",
+                Arguments = $"\"{scriptPath}\" {args}",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                StandardOutputEncoding = Encoding.UTF8,
+                StandardErrorEncoding = Encoding.UTF8,
+                Environment =
+        {
+            ["PYTHONIOENCODING"] = "utf-8",
+            ["PYTHONUTF8"] = "1",
+            ["LC_ALL"] = "en_US.UTF-8",
+            ["LANG"] = "en_US.UTF-8"
+        }
+            };
+
+            runningProcess = new Process { StartInfo = psi };
+
+            runningProcess.EnableRaisingEvents = true;
+            runningProcess.Exited += (s, e) =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    if (!processCancellationToken.IsCancellationRequested)
+                    {
+                        _buttonStates.Reset();
+                        UpdateButtonVisibilities();
+                    }
+                });
+            };
+
+            runningProcess.OutputDataReceived += (s, ea) =>
+            {
+                if (!string.IsNullOrEmpty(ea.Data))
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        LogBox.AppendText(ea.Data + "\n");
+                        LogBox.ScrollToEnd();
+                    });
+                }
+            };
+
+            runningProcess.ErrorDataReceived += (s, ea) =>
+            {
+                if (!string.IsNullOrEmpty(ea.Data))
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        LogBox.AppendText("❌ " + ea.Data + "\n");
+                        LogBox.ScrollToEnd();
+                    });
+                }
+            };
+
+            processCancellationToken.Token.ThrowIfCancellationRequested();
+
+            runningProcess.Start();
+            runningProcess.BeginOutputReadLine();
+            runningProcess.BeginErrorReadLine();
+
+            while (!runningProcess.WaitForExit(100))
+            {
+                processCancellationToken.Token.ThrowIfCancellationRequested();
+            }
+        }
+
+        private class ButtonStates
+        {
+            public enum OperationMode { None, NormalRun, SingleLogin }
+            public OperationMode CurrentMode { get; private set; } = OperationMode.None;
+            public void SetRunningState(OperationMode mode)
+            {
+                CurrentMode = mode;
+                // 这里可以根据需要扩展其他状态属性
+            }
+            public void Reset()
+            {
+                CurrentMode = OperationMode.None;
+            }
+        }
+
+        private readonly ButtonStates _buttonStates = new ButtonStates();
+        private void UpdateButtonVisibilities()
+        {
+            switch (_buttonStates.CurrentMode)
+            {
+                case ButtonStates.OperationMode.NormalRun:
+                    RunButton.Visibility = Visibility.Collapsed;
+                    RunningButton.Visibility = Visibility.Visible;
+                    SingleLoginButton.Visibility = Visibility.Collapsed;
+                    SingleLoggingButton.Visibility = Visibility.Collapsed;
+                    break;
+
+                case ButtonStates.OperationMode.SingleLogin:
+                    RunButton.Visibility = Visibility.Collapsed;
+                    RunningButton.Visibility = Visibility.Collapsed;
+                    SingleLoginButton.Visibility = Visibility.Collapsed;
+                    SingleLoggingButton.Visibility = Visibility.Visible;
+                    break;
+
+                case ButtonStates.OperationMode.None:
+                default:
+                    RunButton.Visibility = Visibility.Visible;
+                    RunningButton.Visibility = Visibility.Collapsed;
+                    SingleLoginButton.Visibility = Visibility.Visible;
+                    SingleLoggingButton.Visibility = Visibility.Collapsed;
+                    break;
+            }
+
+            // 确保停止按钮始终可用
+            StopButton.IsEnabled = _buttonStates.CurrentMode != ButtonStates.OperationMode.None;
+        }
+
+        private async void RunButton_Click(object sender, RoutedEventArgs e)
+        {
+            await RunScriptAsync(false); // 正常执行
+        }
+
+        private async void SingleLoginButton_Click(object sender, RoutedEventArgs e)
+        {
+            await RunScriptAsync(true); // 仅登录模式
+        }
+
         private void StopButton_Click(object sender, RoutedEventArgs e)
         {
-            RunningButton.Visibility = Visibility.Collapsed;
+            // 重置所有按钮状态
+            RunButton.IsEnabled = true;
             RunButton.Visibility = Visibility.Visible;
+            RunningButton.Visibility = Visibility.Collapsed;
+            SingleLoginButton.IsEnabled = true;
 
             try
             {
@@ -330,6 +387,86 @@ namespace car_playwright_wpf
             catch (Exception ex)
             {
                 LogBox.AppendText($"\n⚠️ 停止失败: {ex.Message}\n");
+            }
+            finally
+            {
+                _buttonStates.Reset();
+                UpdateButtonVisibilities();
+            }
+        }
+
+        public static class AppUtils
+        {
+            // 保存C#配置的公共方法
+            public static void SaveCSharpConfig(string scriptPath, bool isDarkMode)
+            {
+                var csharpConfig = new Dictionary<string, object>
+                {
+                    ["python_path"] = "python",
+                    ["script_file"] = scriptPath,
+                    ["auto_restart"] = false,
+                    ["run_in_tray"] = false,
+                    ["config_ui_mode"] = "simple",
+                    ["show_notifications"] = true,
+                    ["theme"] = isDarkMode ? "dark" : "light"
+                };
+
+                string userConfigDir = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "CarPlaywrightWpf"
+                );
+                Directory.CreateDirectory(userConfigDir);
+                string configPath = Path.Combine(userConfigDir, "csharp_config.json");
+
+                string json = JsonSerializer.Serialize(csharpConfig, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(configPath, json);
+            }
+
+            // 构建命令行参数的公共方法
+            public static string BuildCommandLineArgs(
+                string username, string password,
+                bool? headless, string slowMo, string navigationTimeout,
+                string defaultTimeout, string autoTimeout, bool? autoDetectTimeout,
+                string retryTimes, string delayAfterClick, bool onlyLogin, // 注意这里添加了onlyLogin参数
+                bool? autoSubmit, bool? autoExit, bool? exportJson,
+                bool? exportExcel, string logFile, string baseUrl,
+                string ocrLang, string tesseractPath, string excelPrefix,
+                bool? excelMonthly, string excelDir, string maxRetryOnError,
+                string inputTimeout, string orderTimeThreshold, string orderMaxRetry,
+                string orderRetryDelay, bool? debugMode, string logLevel)
+            {
+                return string.Join(" ", new string[]
+                {
+            $"--username \"{username}\"",
+            $"--password \"{password}\"",
+            $"--headless {headless?.ToString().ToLower()}",
+            $"--slow_mo {slowMo}",
+            $"--navigation_timeout {navigationTimeout}",
+            $"--default_timeout {defaultTimeout}",
+            $"--auto_timeout {autoTimeout}",
+            $"--auto_detect_timeout {autoDetectTimeout?.ToString().ToLower()}",
+            $"--retry_times {retryTimes}",
+            $"--delay_after_click {delayAfterClick}",
+            $"--only_login {onlyLogin.ToString().ToLower()}", // 使用传入的onlyLogin值
+            $"--auto_submit {autoSubmit?.ToString().ToLower()}",
+            $"--auto_exit {autoExit?.ToString().ToLower()}",
+            $"--export_json {exportJson?.ToString().ToLower()}",
+            $"--export_excel {exportExcel?.ToString().ToLower()}",
+            $"--log_file \"{logFile}\"",
+            $"--base_url \"{baseUrl}\"",
+            $"--captcha_ocr_lang {ocrLang}",
+            $"--tesseract_path \"{tesseractPath}\"",
+            $"--excel_prefix \"{excelPrefix}\"",
+            $"--excel_monthly {excelMonthly?.ToString().ToLower()}",
+            $"--excel_dir \"{excelDir}\"",
+            $"--max_retry_on_error {maxRetryOnError}",
+            $"--input_timeout {inputTimeout}",
+            $"--order_time_threshold {orderTimeThreshold}",
+            $"--order_max_retry {orderMaxRetry}",
+            $"--order_retry_delay {orderRetryDelay}",
+            $"--debug_mode {debugMode?.ToString().ToLower()}",
+            $"--log_level {logLevel}"
+                });
             }
         }
 
@@ -348,7 +485,7 @@ namespace car_playwright_wpf
                 ["auto_detect_timeout"] = AutoDetectTimeoutToggle.IsChecked == true,
                 ["retry_times"] = int.Parse(RetryTimesBox.Text),
                 ["delay_after_click"] = double.Parse(DelayAfterClickBox.Text),
-                ["only_login"] = OnlyLoginToggle.IsChecked == true,
+                //["only_login"] = OnlyLoginToggle.IsChecked == true,
                 ["auto_submit"] = AutoSubmitToggle.IsChecked == true,
                 ["auto_exit"] = AutoExitToggle.IsChecked == true,
                 ["export_json"] = ExportJsonBox.IsChecked == true,
@@ -551,6 +688,10 @@ namespace car_playwright_wpf
             {
                 PythonCodeBox.Text = dialog.FileName;
                 RunButton.IsEnabled = true;
+
+                // 使用工具类保存配置
+                AppUtils.SaveCSharpConfig(dialog.FileName, DarkModeToggle.IsChecked == true);
+
                 SaveCSharpConfig();
 
                 // 自动读取同目录下的 python_config.json
@@ -607,7 +748,7 @@ namespace car_playwright_wpf
             AutoDetectTimeoutToggle.IsChecked = pyConfig.GetProperty("auto_detect_timeout").GetBoolean();
             RetryTimesBox.Text = pyConfig.GetProperty("retry_times").ToString();
             DelayAfterClickBox.Text = pyConfig.GetProperty("delay_after_click").ToString();
-            OnlyLoginToggle.IsChecked = pyConfig.GetProperty("only_login").GetBoolean();
+            //OnlyLoginToggle.IsChecked = pyConfig.GetProperty("only_login").GetBoolean();
             AutoSubmitToggle.IsChecked = pyConfig.GetProperty("auto_submit").GetBoolean();
             AutoExitToggle.IsChecked = pyConfig.GetProperty("auto_exit").GetBoolean();
             ExportJsonBox.IsChecked = pyConfig.GetProperty("export_json").GetBoolean();
