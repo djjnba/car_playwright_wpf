@@ -45,7 +45,7 @@
       <Value Profile="(Default)">program.log</Value>
     </Setting>
     <Setting Name="base_url" Type="System.String" Scope="User">
-      <Value Profile="(Default)">http://19.15.0.71/Home/Login#</Value>
+      <Value Profile="(Default)">http://19.15.0.71</Value>
     </Setting>
     <Setting Name="captcha_ocr_lang" Type="System.String" Scope="User">
       <Value Profile="(Default)">eng</Value>

@@ -33,6 +33,10 @@ namespace car_playwright_wpf
         public MainWindow()
         {
             InitializeComponent();
+
+            // 初始化重置映射
+            InitializeResetMappings();
+
             // 设置单例实例
             Closed += (s, e) => _instance = null;
             // 获取程序集版本号
@@ -865,14 +869,127 @@ namespace car_playwright_wpf
             await Task.CompletedTask;
 
         }
+        // 在MainWindow类中添加以下代码
+        private Dictionary<string, Action<object>> _resetMappings;
+
+        private void InitializeResetMappings()
+        {
+            _resetMappings = new Dictionary<string, Action<object>>
+    {
+        // 从 Settings.settings 读取默认值
+        { "UsernameBox", value => UsernameBox.Text = Properties.Settings.Default.username },
+        { "PasswordBox", value => PasswordBox.Password = Properties.Settings.Default.password },
+        { "SlowMoBox", value => SlowMoBox.Text = Properties.Settings.Default.slow_mo.ToString() },
+        { "NavigationTimeoutBox", value => NavigationTimeoutBox.Text = Properties.Settings.Default.navigation_timeout.ToString() },
+        { "DefaultTimeoutBox", value => DefaultTimeoutBox.Text = Properties.Settings.Default.default_timeout.ToString() },
+        { "InputTimeoutBox", value => InputTimeoutBox.Text = Properties.Settings.Default.input_timeout.ToString() },
+        { "AutoTimeoutBox", value => AutoTimeoutBox.Text = Properties.Settings.Default.auto_timeout.ToString() },
+        { "RetryTimesBox", value => RetryTimesBox.Text = Properties.Settings.Default.retry_times.ToString() },
+        { "DelayAfterClickBox", value => DelayAfterClickBox.Text = Properties.Settings.Default.delay_after_click.ToString() },
+        { "MaxRetryOnErrorBox", value => MaxRetryOnErrorBox.Text = Properties.Settings.Default.max_retry_on_error.ToString() },
+        { "OrderTimeThresholdBox", value => OrderTimeThresholdBox.Text = Properties.Settings.Default.order_time_threshold.ToString() },
+        { "OrderMaxRetryBox", value => OrderMaxRetryBox.Text = Properties.Settings.Default.order_max_retry.ToString() },
+        { "OrderRetryDelayBox", value => OrderRetryDelayBox.Text = Properties.Settings.Default.order_retry_delay.ToString() },
+        { "BaseUrlBox", value => BaseUrlBox.Text = Properties.Settings.Default.base_url },
+        { "TesseractPathBox", value => TesseractPathBox.Text = Properties.Settings.Default.tesseract_path },
+        { "ExcelPrefixBox", value => ExcelPrefixBox.Text = Properties.Settings.Default.excel_prefix },
+        { "LogFileBox", value => LogFileBox.Text = Properties.Settings.Default.log_file },
+        { "ExcelDirBox", value => ExcelDirBox.Text = Properties.Settings.Default.excel_dir },
+        { "PythonCodeBox", value => PythonCodeBox.Text = "" }, // 脚本路径不保存在设置中
+        
+        // 切换按钮映射
+        { "HeadlessToggle", value => HeadlessToggle.IsChecked = Properties.Settings.Default.headless },
+        { "AutoSubmitToggle", value => AutoSubmitToggle.IsChecked = Properties.Settings.Default.auto_submit },
+        { "ExportExcelToggle", value => ExportExcelToggle.IsChecked = Properties.Settings.Default.export_excel },
+        { "AutoExitToggle", value => AutoExitToggle.IsChecked = Properties.Settings.Default.auto_exit },
+        { "AutoDetectTimeoutToggle", value => AutoDetectTimeoutToggle.IsChecked = Properties.Settings.Default.auto_detect_timeout },
+        
+        // 复选框映射
+        { "ExportJsonBox", value => ExportJsonBox.IsChecked = Properties.Settings.Default.export_json },
+        { "ExcelMonthlyBox", value => ExcelMonthlyBox.IsChecked = Properties.Settings.Default.excel_monthly },
+        { "DebugModeBox", value => DebugModeBox.IsChecked = Properties.Settings.Default.debug_mode },
+        
+        // 下拉框映射 - 需要特殊处理
+        { "OcrLangBox", value =>
+            {
+                // 查找匹配的项
+                string defaultLang = Properties.Settings.Default.captcha_ocr_lang;
+                foreach (ComboBoxItem item in OcrLangBox.Items)
+                {
+                    if (item.Content.ToString() == defaultLang)
+                    {
+                        OcrLangBox.SelectedItem = item;
+                        return;
+                    }
+                }
+                // 如果没有找到，选择第一项
+                OcrLangBox.SelectedIndex = 0;
+            }
+        },
+        { "LogLevelBox", value =>
+            {
+                // 查找匹配的项
+                string defaultLevel = Properties.Settings.Default.log_level;
+                foreach (ComboBoxItem item in LogLevelBox.Items)
+                {
+                    if (item.Content.ToString() == defaultLevel)
+                    {
+                        LogLevelBox.SelectedItem = item;
+                        return;
+                    }
+                }
+                // 如果没有找到，选择第一项
+                LogLevelBox.SelectedIndex = 0;
+            }
+        }
+    };
+        }
+        private void ResetAllSettings()
+        {
+            try
+            {
+                // 1. 重置 Properties.Settings
+                Properties.Settings.Default.Reset();
+                Properties.Settings.Default.Reload();
+                Properties.Settings.Default.Save();
+
+                // 2. 使用映射重置界面控件
+                foreach (var mapping in _resetMappings)
+                {
+                    // 从设置中获取默认值
+                    var settingName = mapping.Key.Replace("Box", "").Replace("Toggle", "");
+                    var defaultValue = Properties.Settings.Default.Properties[settingName]?.DefaultValue;
+
+                    // 应用默认值
+                    mapping.Value(defaultValue);
+                }
+
+                StatusLabel.Text = "已重置为默认值";
+                var textRange = new TextRange(LogBox.Document.ContentEnd, LogBox.Document.ContentEnd);
+                textRange.Text = "⚠️ 所有设置已重置为默认值。\n";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"重置设置时出错: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                var textRange = new TextRange(LogBox.Document.ContentEnd, LogBox.Document.ContentEnd);
+                textRange.Text = "× 重置设置时出错！\n";
+            }
+        }
         private async void ResetSettings_Click(object sender, RoutedEventArgs e)
         {
-            // 恢复为 Settings.settings 里的默认值
-            Properties.Settings.Default.Reset();
-            Properties.Settings.Default.Save();
+            // 正确的DialogHost调用方式
+            // 创建ContentControl来承载DataTemplate
+            var contentControl = new ContentControl();
+            contentControl.ContentTemplate = (DataTemplate)this.Resources["ResetSettingsDialogContent"];
 
-            await MDMessage.Show("设置已恢复为默认值");
+            var result = await DialogHost.Show(contentControl, "RootDialog");
+
+            if (result?.ToString() == "Confirm")
+            {
+                ResetAllSettings();
+                MessageBox.Show("所有设置已重置为默认值。", "重置成功", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            // "Cancel" 或关闭弹窗则不做处理
         }
-
     }
 }

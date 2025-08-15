@@ -36,9 +36,47 @@
                 To="200"
                 Duration="0:0:0.3" />
         </Storyboard>
+
+        <!--  重置设置弹窗内容  -->
+        <DataTemplate x:Key="ResetSettingsDialogContent">
+            <StackPanel MinWidth="300" Margin="20">
+                <TextBlock
+                    Margin="0,0,0,20"
+                    FontWeight="Bold"
+                    Text="确定要重置所有设置吗？" />
+                <TextBlock
+                    Margin="0,0,0,20"
+                    Foreground="Gray"
+                    Text="此操作将恢复所有设置为默认值，且不可撤销。"
+                    TextWrapping="Wrap" />
+                <StackPanel
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Right"
+                    Orientation="Horizontal">
+                    <Button
+                        Width="80"
+                        Margin="0,0,10,0"
+                        Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                        CommandParameter="Confirm"
+                        Content="确认"
+                        Style="{DynamicResource MaterialDesignRaisedButton}" />
+                    <Button
+                        Width="80"
+                        Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                        CommandParameter="Cancel"
+                        Content="关闭"
+                        Style="{DynamicResource MaterialDesignOutlinedButton}" />
+                </StackPanel>
+            </StackPanel>
+        </DataTemplate>
+
+        <Style BasedOn="{StaticResource MaterialDesignRaisedButton}" TargetType="Button">
+            <Setter Property="Margin" Value="10" />
+            <Setter Property="Padding" Value="15,8" />
+        </Style>
     </Window.Resources>
 
-    <materialDesign:DialogHost Identifier="RootDialog">
+    <materialDesign:DialogHost x:Name="RootDialog" Identifier="RootDialog">
         <!--  主网格布局，分为内容区和底部日志区  -->
         <Grid>
             <Grid.RowDefinitions>
@@ -635,8 +673,7 @@
                             <Button
                                 Height="40"
                                 Click="ResetSettings_Click"
-                                IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
-                                ToolTip="起飞">
+                                ToolTip="重置所有设置">
                                 <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
                                     <materialDesign:PackIcon
                                         Width="20"

@@ -193,7 +193,7 @@ namespace car_playwright_wpf.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("http://19.15.0.71/Home/Login#")]
+        [global::System.Configuration.DefaultSettingValueAttribute("http://19.15.0.71")]
         public string base_url {
             get {
                 return ((string)(this["base_url"]));
